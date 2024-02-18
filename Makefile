@@ -20,4 +20,7 @@ run:
 	@make
 	@./$(TARGET)
 
+server:
+	nodemon --exec python3 python/server.py
+
 .PHONY: $(TARGET) clean
