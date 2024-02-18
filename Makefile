@@ -1,6 +1,6 @@
 # Compiler and Compiler Flags
 CC = gcc
-CFLAGS = -Wall -Wextra -Werror -Wpedantic -std=c99 -g
+CFLAGS = -Wall -Wextra -Werror -std=c99 -g
 
 # Target executable name
 TARGET = client
