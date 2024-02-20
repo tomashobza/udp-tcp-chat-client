@@ -56,7 +56,7 @@ int main(void)
     exit(EXIT_FAILURE);
   }
 
-  printf("Bytes sent: %ld\n", bytestx);
+  printf("Bytes sent: %ld\n\n", bytestx);
 
   void *buf2 = malloc(sizeof(char) * 2048);
 
@@ -69,7 +69,9 @@ int main(void)
   }
 
   printf("Bytes received: %ld\n", bytestx);
-  printf("Message: %s\n", (char *)buf2);
+  printf("From: %s\n", server->h_name);
+  printf("Port: %d\n", ntohs(server_address.sin_port));
+  printf("Message: %s\n\n", (char *)buf2);
 
   free(buf2);
   close(client_socket);

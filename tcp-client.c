@@ -98,7 +98,6 @@ int main(void)
         }
     }
 
-    free(buf2);
     close(client_socket);
 
     return 0;
