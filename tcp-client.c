@@ -41,9 +41,9 @@ int main(void)
         exit(EXIT_FAILURE);
     }
 
-    bzero((char *)&server_address, sizeof(server_address));
+    memset((char *)&server_address, 0, sizeof(server_address));
     server_address.sin_family = AF_INET;
-    bcopy((char *)server->h_addr, (char *)&server_address.sin_addr.s_addr, server->h_length);
+    memcpy((char *)&server_address.sin_addr.s_addr, (char *)server->h_addr, server->h_length);
     server_address.sin_port = htons(port_number);
 
     // CONNECT
