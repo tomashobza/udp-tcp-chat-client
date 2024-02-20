@@ -14,9 +14,6 @@ TCP_CLIENT = tcp-client
 # Source files
 SOURCES = $(wildcard *.c)
 
-# Object files
-OBJECTS = $(SOURCES:.c=.o)
-
 # Build targets
 all: $(UDP_CLIENT) $(TCP_CLIENT)
 
@@ -28,7 +25,9 @@ $(TCP_CLIENT): tcp-client.c
 
 # Clean build files
 clean:
-	rm -f $(UDP_CLIENT) $(TCP_CLIENT) $(OBJECTS)
+	rm -f bin/$(UDP_CLIENT) bin/$(TCP_CLIENT) 
+
+build: clean all
 
 # Run targets
 run-udp: $(UDP_CLIENT)
@@ -39,5 +38,8 @@ run-tcp: $(TCP_CLIENT)
 
 server:
 	nodemon --exec python3 python/server.py
+
+kill:
+	kill -9 $(lsof -ti:12000,12001)
 
 .PHONY: all clean run-udp run-tcp server

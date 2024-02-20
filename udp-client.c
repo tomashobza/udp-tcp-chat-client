@@ -43,7 +43,9 @@ int main(void)
   bcopy((char *)server->h_addr, (char *)&server_address.sin_addr.s_addr, server->h_length);
   server_address.sin_port = htons(port_number);
 
-  const void *buf = "Hello, World!";
+  const void *buf = malloc(sizeof(char) * 2048);
+  printf("Enter message: ");
+  fgets((char *)buf, 2048, stdin);
 
   size_t serverlen = sizeof(server_address);
   ssize_t bytestx = sendto(client_socket, buf, strlen(buf), 0, (struct sockaddr *)&server_address, serverlen);
@@ -58,7 +60,7 @@ int main(void)
 
   void *buf2 = malloc(sizeof(char) * 2048);
 
-  bytestx = recvfrom(client_socket, buf2, strlen(buf), 0, (struct sockaddr *)&server_address, ((socklen_t *)&serverlen));
+  bytestx = recvfrom(client_socket, buf2, sizeof(char) * 2048, 0, (struct sockaddr *)&server_address, ((socklen_t *)&serverlen));
 
   if (bytestx < 0)
   {

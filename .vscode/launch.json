@@ -2,6 +2,70 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Launch TCP",
+      "program": "${workspaceFolder}/bin/tcp-client",
+      // "stdio": "${workspaceFolder}/tests/test.swift",
+      "cwd": "${workspaceFolder}",
+      "args": [],
+      "console": "integratedTerminal",
+      "environment": [
+        {
+          "name": "MallocScribble",
+          "value": "1"
+        },
+        {
+          "name": "MallocPreScribble",
+          "value": "1"
+        },
+        {
+          "name": "MallocGuardEdges",
+          "value": "1"
+        },
+        {
+          "name": "MallocStackLogging",
+          "value": "1"
+        },
+        {
+          "name": "MallocStackLoggingNoCompact",
+          "value": "1"
+        }
+      ]
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Launch UDP",
+      "program": "${workspaceFolder}/bin/udp-client",
+      // "stdio": "${workspaceFolder}/tests/test.swift",
+      "cwd": "${workspaceFolder}",
+      "args": [],
+      "console": "integratedTerminal",
+      "environment": [
+        {
+          "name": "MallocScribble",
+          "value": "1"
+        },
+        {
+          "name": "MallocPreScribble",
+          "value": "1"
+        },
+        {
+          "name": "MallocGuardEdges",
+          "value": "1"
+        },
+        {
+          "name": "MallocStackLogging",
+          "value": "1"
+        },
+        {
+          "name": "MallocStackLoggingNoCompact",
+          "value": "1"
+        }
+      ]
+    },
+    {
       "name": "C/C++ Runner: Debug Session",
       "type": "lldb",
       "request": "launch",
