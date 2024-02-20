@@ -18,9 +18,11 @@ SOURCES = $(wildcard *.c)
 all: $(UDP_CLIENT) $(TCP_CLIENT)
 
 $(UDP_CLIENT): udp-client.c
+	mkdir -p bin
 	@$(CC) $(CFLAGS) udp-client.c $(wildcard udp/*.c) -o bin/$(UDP_CLIENT)
 
 $(TCP_CLIENT): tcp-client.c
+	mkdir -p bin
 	@$(CC) $(CFLAGS) tcp-client.c $(wildcard tcp/*.c) -o bin/$(TCP_CLIENT)
 
 # Clean build files
