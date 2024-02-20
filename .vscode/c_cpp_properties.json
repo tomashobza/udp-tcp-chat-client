@@ -2,7 +2,11 @@
   "configurations": [
     {
       "name": "macos-clang-arm64",
-      "includePath": ["${workspaceFolder}/**", "${default}"],
+      "includePath": [
+        "${workspaceFolder}/**",
+        "${default}",
+        "${workspaceFolder}/include/**"
+      ],
       "defines": [],
       "macFrameworkPath": [
         "/Library/Developer/CommandLineTools/SDKs/MacOSX13.sdk/System/Library/Frameworks"

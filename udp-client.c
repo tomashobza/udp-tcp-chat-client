@@ -12,55 +12,45 @@
 // This is where getnameinfo is
 #include <netdb.h>
 #include <sys/_endian.h>
+#include <arpa/inet.h>
+
+#include "udp/utils.h"
 
 int main(void)
 {
-  int client_socket;
+  printf("%lu\n", sizeof(MessageType));
+
   const char *server_hostname = "localhost";
   const int port_number = 12000;
 
-  if ((client_socket = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
-  {
-    perror("ERROR in socket");
-    exit(EXIT_FAILURE);
-  }
-
+  // Create the socket
+  int client_socket = create_socket();
   printf("Socket created %d\n", client_socket);
+  printf("\n");
 
-  struct hostent *server = gethostbyname(server_hostname);
-  struct sockaddr_in server_address;
+  // Get the server address
+  struct sockaddr_in server_address = get_server_address(server_hostname, port_number);
+  size_t server_address_len = sizeof(server_address);
 
-  printf("Server: %s %d\n", server->h_name, server->h_addrtype);
+  // Get the message from the user
+  char *message = get_message();
 
-  if (server == NULL)
-  {
-    fprintf(stderr, "ERROR, no such host as %s\n", server_hostname);
-    exit(EXIT_FAILURE);
-  }
-
-  bzero((char *)&server_address, sizeof(server_address));
-  server_address.sin_family = AF_INET;
-  bcopy((char *)server->h_addr, (char *)&server_address.sin_addr.s_addr, server->h_length);
-  server_address.sin_port = htons(port_number);
-
-  const void *buf = malloc(sizeof(char) * 2048);
-  printf("Enter message: ");
-  fgets((char *)buf, 2048, stdin);
-
-  size_t serverlen = sizeof(server_address);
-  ssize_t bytestx = sendto(client_socket, buf, strlen(buf), 0, (struct sockaddr *)&server_address, serverlen);
-
+  // Send the message to the server
+  ssize_t bytestx = sendto(client_socket, message, strlen(message), 0, (struct sockaddr *)&server_address, server_address_len);
   if (bytestx < 0)
   {
     perror("ERROR in sendto");
     exit(EXIT_FAILURE);
   }
 
-  printf("Bytes sent: %ld\n\n", bytestx);
+  printf("Bytes sent: %ld\n", bytestx);
+  printf("To: %s:%d\n", inet_ntoa(server_address.sin_addr), ntohs(server_address.sin_port));
+  printf("\n");
 
-  void *buf2 = malloc(sizeof(char) * 2048);
+  void *response = malloc(sizeof(char) * 2048);
 
-  bytestx = recvfrom(client_socket, buf2, sizeof(char) * 2048, 0, (struct sockaddr *)&server_address, ((socklen_t *)&serverlen));
+  // Wait for the response from the server
+  bytestx = recvfrom(client_socket, response, sizeof(char) * 2048, 0, (struct sockaddr *)&server_address, ((socklen_t *)&server_address_len));
 
   if (bytestx < 0)
   {
@@ -69,11 +59,12 @@ int main(void)
   }
 
   printf("Bytes received: %ld\n", bytestx);
-  printf("From: %s\n", server->h_name);
-  printf("Port: %d\n", ntohs(server_address.sin_port));
-  printf("Message: %s\n\n", (char *)buf2);
+  printf("From: %s:%d\n", inet_ntoa(server_address.sin_addr), ntohs(server_address.sin_port));
+  printf("Message: %s\n", (char *)response);
+  printf("\n");
 
-  free(buf2);
+  free(message);
+  free(response);
   close(client_socket);
 
   return 0;
