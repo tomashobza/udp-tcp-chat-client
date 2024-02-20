@@ -6,39 +6,24 @@
 #define h_addr h_addr_list[0] /* for backward compatibility */
 #define MAX_MESSAGE_SIZE 1590
 
+#include <string.h>
+#include <stdlib.h>
+
 // Message field types
-typedef enum
-{
-    CONFIRM = (uint8_t)0x00,
-    REPLY = (uint8_t)0x01,
-    AUTH = (uint8_t)0x02,
-    JOIN = (uint8_t)0x03,
-    MSG = (uint8_t)0x04,
-    ERR = (uint8_t)0xFE,
-    BYE = (uint8_t)0xFF
-} MessageTypeEnum;
 typedef uint8_t MessageType;
+
+#define CONFIRM (MessageType)0x00
+#define REPLY (MessageType)0x01
+#define AUTH (MessageType)0x02
+#define JOIN (MessageType)0x03
+#define MSG (MessageType)0x04
+#define ERR (MessageType)0xFE
+#define BYE (MessageType)0xFF
 
 typedef uint16_t MessageID;
 typedef uint8_t MessageResult;
 typedef uint8_t MessageEnd;
 
-// Message structures based on the type
-typedef struct
-{
-    MessageType type;
-    MessageID msg_id;
-} Message_CONFIRM;
-
-typedef struct
-{
-    MessageType type;
-    MessageID msg_id;
-    MessageResult res;
-    MessageID ref_id;
-    char *content;
-} Message_REPLY;
-
-void confirm()
+int send_AUTH(int sockfd, struct sockaddr_in *server, char *username, char *display_name, char *password, MessageID msg_id);
 
 #endif // UDP_SEND_H

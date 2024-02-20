@@ -14,10 +14,11 @@
 #include <arpa/inet.h>
 
 #include "udp/utils.h"
+#include "udp/send.h"
 
 int main(void)
 {
-  printf("%lu\n", sizeof(MessageType));
+  // printf("%lu\n", sizeof(MessageType));
 
   const char *server_hostname = "localhost";
   const int port_number = 12000;
@@ -29,41 +30,44 @@ int main(void)
 
   // Get the server address
   struct sockaddr_in server_address = get_server_address(server_hostname, port_number);
-  size_t server_address_len = sizeof(server_address);
+  // size_t server_address_len = sizeof(server_address);
 
-  // Get the message from the user
-  char *message = get_message();
+  int bytes_sent = send_AUTH(client_socket, &server_address, "username", "display_name", "password", 0);
+  printf("Bytes sent: %d\n", bytes_sent);
 
-  // Send the message to the server
-  ssize_t bytestx = sendto(client_socket, message, strlen(message), 0, (struct sockaddr *)&server_address, server_address_len);
-  if (bytestx < 0)
-  {
-    perror("ERROR in sendto");
-    exit(EXIT_FAILURE);
-  }
+  // // Get the message from the user
+  // char *message = get_message();
 
-  printf("Bytes sent: %ld\n", bytestx);
-  printf("To: %s:%d\n", inet_ntoa(server_address.sin_addr), ntohs(server_address.sin_port));
-  printf("\n");
+  // // Send the message to the server
+  // ssize_t bytestx = sendto(client_socket, message, strlen(message), 0, (struct sockaddr *)&server_address, server_address_len);
+  // if (bytestx < 0)
+  // {
+  //   perror("ERROR in sendto");
+  //   exit(EXIT_FAILURE);
+  // }
 
-  void *response = malloc(sizeof(char) * 2048);
+  // printf("Bytes sent: %ld\n", bytestx);
+  // printf("To: %s:%d\n", inet_ntoa(server_address.sin_addr), ntohs(server_address.sin_port));
+  // printf("\n");
 
-  // Wait for the response from the server
-  bytestx = recvfrom(client_socket, response, sizeof(char) * 2048, 0, (struct sockaddr *)&server_address, ((socklen_t *)&server_address_len));
+  // void *response = malloc(sizeof(char) * 2048);
 
-  if (bytestx < 0)
-  {
-    perror("ERROR in recvfrom");
-    exit(EXIT_FAILURE);
-  }
+  // // Wait for the response from the server
+  // bytestx = recvfrom(client_socket, response, sizeof(char) * 2048, 0, (struct sockaddr *)&server_address, ((socklen_t *)&server_address_len));
 
-  printf("Bytes received: %ld\n", bytestx);
-  printf("From: %s:%d\n", inet_ntoa(server_address.sin_addr), ntohs(server_address.sin_port));
-  printf("Message: %s\n", (char *)response);
-  printf("\n");
+  // if (bytestx < 0)
+  // {
+  //   perror("ERROR in recvfrom");
+  //   exit(EXIT_FAILURE);
+  // }
 
-  free(message);
-  free(response);
+  // printf("Bytes received: %ld\n", bytestx);
+  // printf("From: %s:%d\n", inet_ntoa(server_address.sin_addr), ntohs(server_address.sin_port));
+  // printf("Message: %s\n", (char *)response);
+  // printf("\n");
+
+  // free(message);
+  // free(response);
   close(client_socket);
 
   return 0;

@@ -2,6 +2,29 @@ from socket import *
 import threading
 
 
+class MessageType:
+    def __init__(self, enum):
+        self.enum = enum
+
+    def __repr__(self):
+        if self.enum == 0:
+            return "CONFIRM"
+        elif self.enum == 1:
+            return "REPLY"
+        elif self.enum == 2:
+            return "AUTH"
+        elif self.enum == 3:
+            return "JOIN"
+        elif self.enum == 4:
+            return "MSG"
+        elif self.enum == 0xFE:
+            return "ERR"
+        elif self.enum == 0xFF:
+            return "BYE"
+        else:
+            return "UNKNOWN"
+
+
 def udp_server():
     UDPserverPort = 12000
     UDPserverSocket = socket(AF_INET, SOCK_DGRAM)
@@ -11,9 +34,13 @@ def udp_server():
     while True:
         message, clientAddress = UDPserverSocket.recvfrom(2048)
         changedMessage = message.upper()
+        # write out the first byte of the message as a number, two next bytes as another number and the rest of the message as a string separated by bytes of value 0
+        type = MessageType(message[0])
+        msg = ",".join(message[3:].decode().split("\0"))
         print(
-            f"\033[94mUDP: Received message: {message.decode()} from {clientAddress}\033[0m"
+            f"\033[94mUDP: Received message: {type}:{(message[1]<<1)+message[2]}:'{msg}' from {clientAddress}\033[0m"
         )
+
         UDPserverSocket.sendto(changedMessage, clientAddress)
 
 

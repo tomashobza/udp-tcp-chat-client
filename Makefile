@@ -2,7 +2,7 @@ DEBUG = 0
 
 # Compiler and Compiler Flags
 CC = gcc
-CFLAGS = -Wall -Wextra -Werror -std=c99
+CFLAGS = -Wall -Wextra -std=c99
 ifeq ($(DEBUG), 1)
 	CFLAGS += -g
 endif
