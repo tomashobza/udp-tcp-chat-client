@@ -9,6 +9,8 @@
 #include <string.h>
 #include <netdb.h>
 
+#define h_addr h_addr_list[0] /* for backward compatibility */
+
 // Message field types
 typedef enum
 {
