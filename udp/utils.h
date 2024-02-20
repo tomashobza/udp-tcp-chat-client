@@ -9,37 +9,6 @@
 #include <string.h>
 #include <netdb.h>
 
-#define h_addr h_addr_list[0] /* for backward compatibility */
-
-// Message field types
-typedef enum
-{
-    CONFIRM = (uint8_t)0x00,
-    REPLY = (uint8_t)0x01,
-    AUTH = (uint8_t)0x02,
-    JOIN = (uint8_t)0x03,
-    MSG = (uint8_t)0x04,
-    ERR = (uint8_t)0xFE,
-    BYE = (uint8_t)0xFF
-} MessageType;
-
-typedef uint16_t MessageID;
-typedef uint8_t MessageResult;
-
-// Message structures based on the type
-typedef struct
-{
-    MessageType type;
-    MessageID msg_id;
-} Message_CONFIRM;
-
-typedef struct
-{
-    MessageType type;
-    MessageID msg_id;
-    char *message;
-} Message_REPLY;
-
 /**
  * @brief Create an internet UDP socket. If the socket creation fails, the program will exit with EXIT_FAILURE.
  *
