@@ -11,7 +11,6 @@
 #include <string.h>
 // This is where getnameinfo is
 #include <netdb.h>
-#include <sys/_endian.h>
 
 int main(void)
 {

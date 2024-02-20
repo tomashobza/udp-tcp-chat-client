@@ -38,10 +38,7 @@
   "C_Cpp_Runner.compilerArgs": [],
   "C_Cpp_Runner.linkerArgs": [],
   "C_Cpp_Runner.includePaths": [],
-  "C_Cpp_Runner.includeSearch": [
-    "*",
-    "**/*"
-  ],
+  "C_Cpp_Runner.includeSearch": ["*", "**/*"],
   "C_Cpp_Runner.excludeSearch": [
     "**/build",
     "**/build/**",
@@ -60,6 +57,28 @@
     "*.css": "tailwindcss",
     ".env*": "dotenv",
     "socket.h": "c",
-    "types.h": "c"
+    "types.h": "c",
+    "general_stack.h": "c",
+    "scanner.h": "c",
+    "error.h": "c",
+    "__hash_table": "c",
+    "array": "c",
+    "charconv": "c",
+    "type_traits": "c",
+    "limits": "c",
+    "ratio": "c",
+    "tuple": "c",
+    "variant": "c",
+    "utils.h": "c",
+    "symtable.h": "c",
+    "parser.h": "c",
+    "stdlib.h": "c",
+    "debug.h": "c",
+    "colorful_printf.h": "c",
+    "semantic.h": "c",
+    "stdio.h": "c",
+    "generator.h": "c",
+    "stack.h": "c",
+    "netdb.h": "c"
   }
 }

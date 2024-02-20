@@ -26,7 +26,6 @@ additionalAllowedLibraries=(
     "net/if"
     "strings"
     "unistd"
-    "sys/_endian"
     # Add any additional non-standard allowed libraries or headers here
 )
 
