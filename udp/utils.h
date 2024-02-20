@@ -10,7 +10,7 @@
 #include <netdb.h>
 
 // Message field types
-typedef enum : uint8_t
+typedef enum
 {
     CONFIRM = (uint8_t)0x00,
     REPLY = (uint8_t)0x01,
