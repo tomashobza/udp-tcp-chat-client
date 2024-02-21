@@ -1,47 +1,18 @@
-DEBUG = 0
+CXX=g++-13
+CXXFLAGS=-std=c++20 -Wall -Wextra -pedantic
 
-# Compiler and Compiler Flags
-CC = gcc
-CFLAGS = -Wall -Wextra -Werror -std=c99
-ifeq ($(DEBUG), 1)
-	CFLAGS += -g
-endif
+.PHONY: main run clean server
 
-# Output binaries
-UDP_CLIENT = udp-client
-TCP_CLIENT = tcp-client
-
-# Source files
-SOURCES = $(wildcard *.c)
-
-# Build targets
-all: $(UDP_CLIENT) $(TCP_CLIENT)
-
-$(UDP_CLIENT): udp-client.c
+main: main.cpp
 	@mkdir -p bin
-	@$(CC) $(CFLAGS) udp-client.c $(wildcard udp/*.c) -o bin/$(UDP_CLIENT)
+	$(CXX) -o bin/main main.cpp $(CXXFLAGS)
 
-$(TCP_CLIENT): tcp-client.c
-	@mkdir -p bin
-	@$(CC) $(CFLAGS) tcp-client.c $(wildcard tcp/*.c) -o bin/$(TCP_CLIENT)
+run: main
+	@echo
+	@./bin/main
 
-# Clean build files
 clean:
-	rm -f bin/$(UDP_CLIENT) bin/$(TCP_CLIENT)
-
-build: clean all
-
-# Run targets
-run-udp: $(UDP_CLIENT)
-	@./bin/$(UDP_CLIENT)
-
-run-tcp: $(TCP_CLIENT)
-	@./bin/$(TCP_CLIENT)
+	rm -f hello
 
 server:
 	nodemon --exec python3 python/server.py
-
-kill:
-	kill -9 $(lsof -ti:12000,12001)
-
-.PHONY: all clean run-udp run-tcp server kill

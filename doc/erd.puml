@@ -1,0 +1,24 @@
+@startuml class-diagram
+
+' crt-amber
+' plain
+
+' class InputParser {
+' 	.. Methods ..
+' 	+ getName()
+' 	+ getAddress()
+' 	__ private data __
+' 	int age
+' 	-- encrypted --
+' 	String password
+' }
+class Postman {
+	.. Methods ..
+	+ connect_to_server()
+	+ send_message()
+	__ private data __
+	socketaddr server
+	' -- encrypted --
+	' String password
+}
+@enduml
