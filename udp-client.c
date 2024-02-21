@@ -18,57 +18,66 @@
 
 int main(void)
 {
-  // printf("%lu\n", sizeof(MessageType));
+	// printf("%lu\n", sizeof(MessageType));
 
-  const char *server_hostname = "localhost";
-  const int port_number = 12000;
+	const char *server_hostname = "localhost";
+	const int port_number = 12000;
 
-  // Create the socket
-  int client_socket = create_socket();
-  printf("Socket created %d\n", client_socket);
-  printf("\n");
+	// Create the socket
+	int client_socket = create_socket();
+	printf("Socket created %d\n", client_socket);
+	printf("\n");
 
-  // Get the server address
-  struct sockaddr_in server_address = get_server_address(server_hostname, port_number);
-  // size_t server_address_len = sizeof(server_address);
+	// Get the server address
+	struct sockaddr_in server_address = get_server_address(server_hostname, port_number);
+	// size_t server_address_len = sizeof(server_address);
 
-  int bytes_sent = send_AUTH(client_socket, &server_address, "username", "display_name", "password", 0);
-  printf("Bytes sent: %d\n", bytes_sent);
+	int msg_id = 0;
 
-  // // Get the message from the user
-  // char *message = get_message();
+	// AUTH
+	int bytes_sent = send_AUTH(client_socket, &server_address, "username", "display_name", "password", msg_id);
+	msg_id++;
+	printf("Bytes sent: %d\n", bytes_sent);
 
-  // // Send the message to the server
-  // ssize_t bytestx = sendto(client_socket, message, strlen(message), 0, (struct sockaddr *)&server_address, server_address_len);
-  // if (bytestx < 0)
-  // {
-  //   perror("ERROR in sendto");
-  //   exit(EXIT_FAILURE);
-  // }
+	// JOIN
+	bytes_sent = send_JOIN(client_socket, &server_address, "channelID", "display_name", msg_id);
+	msg_id++;
+	printf("Bytes sent: %d\n", bytes_sent);
 
-  // printf("Bytes sent: %ld\n", bytestx);
-  // printf("To: %s:%d\n", inet_ntoa(server_address.sin_addr), ntohs(server_address.sin_port));
-  // printf("\n");
+	// // Get the message from the user
+	// char *message = get_message();
 
-  // void *response = malloc(sizeof(char) * 2048);
+	// // Send the message to the server
+	// ssize_t bytestx = sendto(client_socket, message, strlen(message), 0, (struct sockaddr *)&server_address, server_address_len);
+	// if (bytestx < 0)
+	// {
+	//   perror("ERROR in sendto");
+	//   exit(EXIT_FAILURE);
+	// }
 
-  // // Wait for the response from the server
-  // bytestx = recvfrom(client_socket, response, sizeof(char) * 2048, 0, (struct sockaddr *)&server_address, ((socklen_t *)&server_address_len));
+	// printf("Bytes sent: %ld\n", bytestx);
+	// printf("To: %s:%d\n", inet_ntoa(server_address.sin_addr), ntohs(server_address.sin_port));
+	// printf("\n");
 
-  // if (bytestx < 0)
-  // {
-  //   perror("ERROR in recvfrom");
-  //   exit(EXIT_FAILURE);
-  // }
+	// void *response = malloc(sizeof(char) * 2048);
 
-  // printf("Bytes received: %ld\n", bytestx);
-  // printf("From: %s:%d\n", inet_ntoa(server_address.sin_addr), ntohs(server_address.sin_port));
-  // printf("Message: %s\n", (char *)response);
-  // printf("\n");
+	// // Wait for the response from the server
+	// bytestx = recvfrom(client_socket, response, sizeof(char) * 2048, 0, (struct sockaddr *)&server_address, ((socklen_t *)&server_address_len));
 
-  // free(message);
-  // free(response);
-  close(client_socket);
+	// if (bytestx < 0)
+	// {
+	//   perror("ERROR in recvfrom");
+	//   exit(EXIT_FAILURE);
+	// }
 
-  return 0;
+	// printf("Bytes received: %ld\n", bytestx);
+	// printf("From: %s:%d\n", inet_ntoa(server_address.sin_addr), ntohs(server_address.sin_port));
+	// printf("Message: %s\n", (char *)response);
+	// printf("\n");
+
+	// free(message);
+	// free(response);
+	close(client_socket);
+
+	return 0;
 }

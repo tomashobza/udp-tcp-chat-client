@@ -26,4 +26,6 @@ typedef uint8_t MessageEnd;
 
 int send_AUTH(int sockfd, struct sockaddr_in *server, char *username, char *display_name, char *password, MessageID msg_id);
 
+int send_JOIN(int sockfd, struct sockaddr_in *server, char *channel_id, char *display_name, MessageID msg_id);
+
 #endif // UDP_SEND_H

@@ -38,7 +38,7 @@ def udp_server():
         type = MessageType(message[0])
         msg = ",".join(message[3:].decode().split("\0"))
         print(
-            f"\033[94mUDP: Received message: {type}:{(message[1]<<1)+message[2]}:'{msg}' from {clientAddress}\033[0m"
+            f"\033[94mUDP: Received message: {type}:{(message[2]<<1)+message[1]}:'{msg}' from {clientAddress}\033[0m"
         )
 
         UDPserverSocket.sendto(changedMessage, clientAddress)
