@@ -134,6 +134,13 @@ public:
      * @return struct sockaddr_in - the server address
      */
     struct sockaddr_in get_server_address();
+
+    /**
+     * @brief Wait for a message from the server.
+     *
+     * @return Message
+     */
+    std::vector<uint8_t> receive();
 };
 
 #endif // POSTMAN_H

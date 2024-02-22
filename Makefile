@@ -5,7 +5,7 @@ CXXFLAGS=-std=c++20 -Wall -Wextra -pedantic -g
 TARGET=bin/main
 
 # Define source files
-SOURCES=main.cpp postman.cpp sock.cpp
+SOURCES=main.cpp sock.cpp
 
 # Define object files (not needed directly since we compile and link in one step here)
 # OBJECTS=$(SOURCES:.cpp=.o)

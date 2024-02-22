@@ -1,8 +1,8 @@
 #include "postman.h"
 
-Postman::Postman()
+Postman::Postman() : client_socket()
 {
-    client_socket = Sock();
+    std::cout << "postman created" << std::endl;
 }
 
 Postman::~Postman()
@@ -174,4 +174,25 @@ int Postman::get_client_socket()
 struct sockaddr_in Postman::get_server_address()
 {
     return server_address;
+}
+
+std::vector<uint8_t> Postman::receive()
+{
+    // Allocate a buffer with a maximum expected size
+    size_t maxBufferSize = 1024; // Adjust this size according to your needs
+    std::vector<uint8_t> *buffer = new std::vector<uint8_t>(maxBufferSize);
+
+    // receive the message
+    ssize_t n = recvfrom(client_socket.getFd(), buffer->data(), buffer->size(), 0, NULL, NULL);
+    if (n < 0)
+    {
+        // Handle error or return nullptr to indicate an error condition
+        delete buffer; // Important to avoid memory leaks
+        throw std::runtime_error("ERROR receiving message");
+    }
+
+    // Resize the buffer to the actual received size to avoid excess memory usage
+    buffer->resize(n);
+
+    return *buffer;
 }
