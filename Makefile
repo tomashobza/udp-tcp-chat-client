@@ -19,7 +19,7 @@ main: $(SOURCES)
 
 # Run target
 run: main
-	@echo "Running the program:"
+	@echo "\n=== Running the program ==="
 	@./$(TARGET)
 
 # Clean target

@@ -42,7 +42,7 @@ def udp_server():
             f"\033[94mUDP: Received message:\n\t{type}:{(message[2]<<1)+message[1]}:'{msg}'\n\tfrom {clientAddress}\033[0m"
         )
 
-        time.sleep(3)
+        time.sleep(0.4)
         print(
             f"\033[92mUDP: Sending message: {changedMessage} to {clientAddress}\033[0m"
         )

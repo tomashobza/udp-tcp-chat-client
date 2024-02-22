@@ -2,7 +2,9 @@
 
 Postman::Postman() : client_socket()
 {
-    std::cout << "postman created" << std::endl;
+    // // Set the socket to non-blocking mode
+    // client_socket.setSocketNonBlocking();
+    std::clog << "Created client socket: " << client_socket.getFd() << std::endl;
 }
 
 Postman::~Postman()
@@ -213,6 +215,8 @@ std::vector<uint8_t> Postman::receive_with_retry(int timeout_ms, int max_retries
             client_socket.unset_timeout();
             return buffer;
         }
+
+        std::clog << "RETRY" << std::endl;
 
         // If the buffer is empty, send the last message again
         ssize_t n = sendto(client_socket.getFd(), last_message.data(), last_message.size(), 0, (struct sockaddr *)&server_address, sizeof(server_address));
