@@ -25,18 +25,6 @@ void Postman::attach_to_server(const std::string &server_hostname, uint16_t port
     server_address.sin_port = htons(port_number);
 }
 
-int Postman::test_send()
-{
-    std::string message = "Hello, world!";
-    ssize_t n = sendto(client_socket.getFd(), message.c_str(), message.length(), 0,
-                       (struct sockaddr *)&server_address, sizeof(server_address));
-    if (n < 0)
-    {
-        throw std::runtime_error("ERROR sending test message");
-    }
-    return 0;
-}
-
 int Postman::authorize(const std::string &username, const std::string &display_name, const std::string &password)
 {
     // get the message data length
@@ -61,6 +49,8 @@ int Postman::authorize(const std::string &username, const std::string &display_n
     {
         throw std::runtime_error("ERROR sending AUTH message");
     }
+
+    last_message = data;
     return 0;
 }
 
@@ -87,6 +77,8 @@ int Postman::join(const std::string &channel_id, const std::string &display_name
     {
         throw std::runtime_error("ERROR sending JOIN message");
     }
+
+    last_message = data;
     return 0;
 }
 
@@ -113,6 +105,8 @@ int Postman::message(const std::string &display_name, const std::string &message
     {
         throw std::runtime_error("ERROR sending MSG message");
     }
+
+    last_message = data;
     return 0;
 }
 
@@ -139,6 +133,8 @@ int Postman::error(const std::string &display_name, const std::string &message_c
     {
         throw std::runtime_error("ERROR sending MSG message");
     }
+
+    last_message = data;
     return 0;
 }
 
@@ -163,6 +159,8 @@ int Postman::bye()
     {
         throw std::runtime_error("ERROR sending BYE message");
     }
+
+    last_message = data;
     return 0;
 }
 
@@ -188,11 +186,51 @@ std::vector<uint8_t> Postman::receive()
     {
         // Handle error or return nullptr to indicate an error condition
         delete buffer; // Important to avoid memory leaks
-        throw std::runtime_error("ERROR receiving message");
+        return std::vector<uint8_t>();
     }
 
     // Resize the buffer to the actual received size to avoid excess memory usage
     buffer->resize(n);
 
     return *buffer;
+}
+
+std::vector<uint8_t> Postman::receive_with_retry(int timeout_ms, int max_retries)
+{
+    // Set the timeout for the socket
+    client_socket.set_timeout(timeout_ms);
+    std::vector<uint8_t> buffer; // return buffer
+
+    // Try to receive the message max_retries times
+    for (int i = 0; i < max_retries; i++)
+    {
+        // Try to receive the message
+        buffer = receive();
+        // If the buffer is not empty, return it
+        if (buffer.size() > 0)
+        {
+            // Unset the timeout for the socket
+            client_socket.unset_timeout();
+            return buffer;
+        }
+
+        // If the buffer is empty, send the last message again
+        ssize_t n = sendto(client_socket.getFd(), last_message.data(), last_message.size(), 0, (struct sockaddr *)&server_address, sizeof(server_address));
+        // If the message was sent successfully, continue to the next iteration
+        if (n < 0)
+        {
+            // Else unset the timeout for the socket and throw an error
+            client_socket.unset_timeout();
+            throw std::runtime_error("ERROR sending last message with retry");
+            return buffer;
+        }
+        continue;
+    }
+
+    // Unset the timeout for the socket
+    client_socket.unset_timeout();
+
+    // TODO: maybe handle this error better
+    throw std::runtime_error("ERROR receiving message with retry");
+    return buffer;
 }

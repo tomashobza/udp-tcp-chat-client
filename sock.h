@@ -59,6 +59,18 @@ public:
      * @return int
      */
     int getFd();
+
+    /**
+     * @brief Set the timeout for the socket.
+     *
+     * @param msec - milliseconds
+     */
+    void set_timeout(int msec);
+
+    /**
+     * @brief Unset the timeout for the socket.
+     */
+    void unset_timeout();
 };
 
 #endif // SOCKS_H

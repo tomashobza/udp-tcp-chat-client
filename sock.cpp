@@ -8,17 +8,6 @@ Sock::Sock()
         throw std::runtime_error("ERROR opening socket");
     }
     std::clog << "Created client socket: " << fd << std::endl;
-
-    // // set timeout for recvfrom
-    // const struct timeval tv
-    // {
-    //     .tv_sec = 0,
-    //     .tv_usec = 250000
-    // };
-    // if (setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0)
-    // {
-    //     throw std::runtime_error("ERROR setting socket options");
-    // }
 }
 
 Sock::~Sock()
@@ -49,4 +38,23 @@ bool Sock::isBlocking()
 int Sock::getFd()
 {
     return fd;
+}
+
+void Sock::set_timeout(int msec)
+{
+    // set timeout for recvfrom
+    const struct timeval tv
+    {
+        .tv_sec = msec / 1000,
+        .tv_usec = (msec * 1000) % 1000000
+    };
+    if (setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0)
+    {
+        throw std::runtime_error("ERROR setting socket options");
+    }
+}
+
+void Sock::unset_timeout()
+{
+    setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, NULL, 0);
 }

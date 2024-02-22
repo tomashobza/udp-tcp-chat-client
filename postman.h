@@ -48,6 +48,8 @@ private:
     /** The ID of the last message received. */
     int ref_msg_id = 0;
 
+    std::vector<uint8_t> last_message;
+
 public:
     /**
      * @brief Construct a new Postman object and create a socket.
@@ -68,14 +70,6 @@ public:
      * @param port_number - the port number of the server
      */
     void attach_to_server(const std::string &server_hostname, uint16_t port_number);
-
-    /**
-     * @brief Send a test "Hello, world!" message to the server.
-     *
-     * @return int - >0 (number of sent B) if successful, -1 if failed
-     */
-    // TODO: DEV - delete this
-    int test_send();
 
     /**
      * @brief Send the AUTH message to the server.
@@ -138,9 +132,18 @@ public:
     /**
      * @brief Wait for a message from the server.
      *
-     * @return Message
+     * @return std::vector<uint8_t> - the message
      */
     std::vector<uint8_t> receive();
+
+    /**
+     * @brief Wait for a message from the server with a timeout and retry sending las message.
+     *
+     * @param timeout_s - the timeout in seconds
+     * @param max_retries - the maximum number of retries
+     * @return std::vector<uint8_t> - the message
+     */
+    std::vector<uint8_t> receive_with_retry(int timeout_s, int max_retries);
 };
 
 #endif // POSTMAN_H

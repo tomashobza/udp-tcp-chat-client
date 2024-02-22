@@ -12,7 +12,7 @@ int main()
 
     // Authorize the user
     postman.authorize("user", "User", "password");
-    std::vector<uint8_t> buffer = postman.receive();
+    std::vector<uint8_t> buffer = postman.receive_with_retry(250, 10);
     // print first byte of buffer
     std::cout << "First byte of buffer: " << (int)buffer.at(0) << std::endl;
 
