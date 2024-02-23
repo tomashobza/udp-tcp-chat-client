@@ -7,7 +7,6 @@ Sock::Sock()
     {
         throw std::runtime_error("ERROR opening socket");
     }
-    std::clog << "Created client socket: " << fd << std::endl;
 }
 
 Sock::~Sock()
