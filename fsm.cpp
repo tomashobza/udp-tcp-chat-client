@@ -25,6 +25,15 @@ std::string Automata::read_stdin()
         throw std::runtime_error("Failed to read from stdin.");
         return "";
     }
+
+    // Remove the newline character
+    if (buffer[n - 1] == '\n')
+    {
+        buffer[n - 1] = 0;
+        n--;
+    }
+
+    // Return the string
     return std::string(buffer, n);
 }
 
@@ -78,6 +87,13 @@ void Automata::open_polling()
             {
                 // Read from stdin
                 std::string msg = read_stdin();
+
+                if (msg.empty() || msg == "exit")
+                {
+                    // Send the BYE message to the server
+                    postman.bye();
+                    return;
+                }
 
                 // Send the message to the server
                 postman.message("user", msg);
