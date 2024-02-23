@@ -235,6 +235,6 @@ std::vector<uint8_t> Postman::receive_with_retry(int timeout_ms, int max_retries
     client_socket.unset_timeout();
 
     // TODO: maybe handle this error better
-    throw std::runtime_error("ERROR receiving message with retry");
+    throw std::runtime_error("ERROR confirm not recieved");
     return buffer;
 }
