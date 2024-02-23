@@ -34,6 +34,13 @@ typedef uint16_t MessageID;
 #define MSG_MAX_RETRIES 3
 #define MSG_TIMEOUT 250
 
+typedef struct
+{
+    MessageType type;
+    MessageID id;
+    std::vector<uint8_t> data;
+} Message;
+
 /// CLASSES ///
 
 /**
@@ -135,18 +142,18 @@ public:
     /**
      * @brief Wait for a message from the server.
      *
-     * @return std::vector<uint8_t> - the message
+     * @return Message - the message
      */
-    std::vector<uint8_t> receive();
+    Message receive();
 
     /**
      * @brief Wait for a message from the server with a timeout and retry sending las message.
      *
      * @param timeout_s - the timeout in seconds
      * @param max_retries - the maximum number of retries
-     * @return std::vector<uint8_t> - the message
+     * @return Message - the message
      */
-    std::vector<uint8_t> receive_with_retry(int timeout_s, int max_retries);
+    Message receive_with_retry(int timeout_s, int max_retries);
 };
 
 #endif // POSTMAN_H

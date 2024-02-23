@@ -176,7 +176,7 @@ struct sockaddr_in Postman::get_server_address()
     return server_address;
 }
 
-std::vector<uint8_t> Postman::receive()
+Message Postman::receive()
 {
     // Allocate a buffer with a maximum expected size
     size_t maxBufferSize = 1024; // Adjust this size according to your needs
@@ -188,32 +188,41 @@ std::vector<uint8_t> Postman::receive()
     {
         // Handle error or return nullptr to indicate an error condition
         delete buffer; // Important to avoid memory leaks
-        return std::vector<uint8_t>();
+        return Message{
+            MessageType::ERR,
+            0,
+            std::vector<uint8_t>(0)};
     }
 
     // Resize the buffer to the actual received size to avoid excess memory usage
     buffer->resize(n);
 
-    return *buffer;
+    // Create a message object
+    Message msg;
+    msg.data = *buffer;
+    msg.type = (MessageType)buffer->at(0);
+    std::memcpy(&msg.id, &buffer->at(1), sizeof(MessageID));
+
+    return msg;
 }
 
-std::vector<uint8_t> Postman::receive_with_retry(int timeout_ms, int max_retries)
+Message Postman::receive_with_retry(int timeout_ms, int max_retries)
 {
     // Set the timeout for the socket
     client_socket.set_timeout(timeout_ms);
-    std::vector<uint8_t> buffer; // return buffer
+    Message msg; // return buffer
 
     // Try to receive the message max_retries times
     for (int i = 0; i < max_retries; i++)
     {
         // Try to receive the message
-        buffer = receive();
+        msg = receive();
         // If the buffer is not empty, return it
-        if (buffer.size() > 0)
+        if (msg.data.size() > 0)
         {
             // Unset the timeout for the socket
             client_socket.unset_timeout();
-            return buffer;
+            return msg;
         }
 
         std::clog << "RETRY" << std::endl;
@@ -226,7 +235,7 @@ std::vector<uint8_t> Postman::receive_with_retry(int timeout_ms, int max_retries
             // Else unset the timeout for the socket and throw an error
             client_socket.unset_timeout();
             throw std::runtime_error("ERROR sending last message with retry");
-            return buffer;
+            return msg;
         }
         continue;
     }
@@ -236,5 +245,5 @@ std::vector<uint8_t> Postman::receive_with_retry(int timeout_ms, int max_retries
 
     // TODO: maybe handle this error better
     throw std::runtime_error("ERROR confirm not recieved");
-    return buffer;
+    return msg;
 }

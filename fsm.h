@@ -30,9 +30,16 @@ public:
     std::string read_stdin();
 
     /**
+     * @brief Handle the message received from the server.
+     */
+    void handle_msg();
+
+    /**
      * @brief Open polling for the automata for the client socket and stdin.
      */
     void open_polling();
+
+    static void print_leader();
 };
 
 #endif // AUTOMATA_H
