@@ -125,7 +125,10 @@
         "typeinfo": "cpp",
         "unordered_map": "cpp",
         "vector": "cpp",
-        "algorithm": "cpp"
+        "algorithm": "cpp",
+        "deque": "cpp",
+        "stack": "cpp",
+        "chrono": "cpp"
     },
     "workbench.colorCustomizations": {
         "activityBar.background": "#252C3E",

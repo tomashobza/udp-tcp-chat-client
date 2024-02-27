@@ -11,6 +11,8 @@
 #include <vector>
 #include <sys/time.h>
 #include "sock.h"
+#include <stack>
+#include <chrono>
 
 /// TYPES ///
 
@@ -59,6 +61,7 @@ private:
     int ref_msg_id = 0;
 
     std::vector<uint8_t> last_message;
+    std::stack<Message> message_stack;
 
 public:
     /**
@@ -145,6 +148,14 @@ public:
      * @return Message - the message
      */
     Message receive();
+
+    /**
+     * @brief Wait for a CONFIRM message from the server with a timeout, all other messages are pushed to a message stack.
+     *
+     * @param timeout_ms
+     * @return Message
+     */
+    Message receive_confirm(int timeout_ms);
 
     /**
      * @brief Wait for a message from the server with a timeout and retry sending las message.

@@ -206,6 +206,56 @@ Message Postman::receive()
     return msg;
 }
 
+Message Postman::receive_confirm(int timeout_ms)
+{
+    // Set the timeout for the socket
+    client_socket.set_timeout(timeout_ms);
+    Message msg = {
+        MessageType::ERR,
+        0,
+        std::vector<uint8_t>(0)}; // return buffer
+
+    int remaining_time_ms = 250;
+
+    while (remaining_time_ms > 0)
+    {
+        // Start the timer
+        auto start_time = std::chrono::high_resolution_clock::now();
+
+        // Try to receive the message
+        msg = receive();
+
+        // Stop the timer
+        auto elapsed = std::chrono::high_resolution_clock::now() - start_time;
+
+        // Subtract the elapsed time from the remaining time
+        remaining_time_ms -= std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count();
+
+        // If the remaining time is less than or equal to 0, break the loop
+        if (remaining_time_ms <= 0)
+        {
+            break;
+        }
+
+        // If the buffer is not empty and the message is a confirm, return it
+        if (msg.data.size() > 0 && msg.id == CONFIRM)
+        {
+            // Unset the timeout for the socket
+            client_socket.unset_timeout();
+            return msg;
+        }
+        else if (msg.data.size() > 0 && msg.id != CONFIRM)
+        {
+            // If the buffer is not empty and the message is not a confirm, push it to the stack
+            message_stack.push(msg);
+        }
+    }
+
+    // Unset the timeout for the socket
+    client_socket.unset_timeout();
+    return msg;
+}
+
 Message Postman::receive_with_retry(int timeout_ms, int max_retries)
 {
     // Set the timeout for the socket
@@ -217,6 +267,7 @@ Message Postman::receive_with_retry(int timeout_ms, int max_retries)
     {
         // Try to receive the message
         msg = receive();
+
         // If the buffer is not empty, return it
         if (msg.data.size() > 0)
         {
