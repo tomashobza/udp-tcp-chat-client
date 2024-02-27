@@ -7,6 +7,7 @@ Automata::Automata() : postman()
 {
     std::cout << "ahoj" << std::endl;
     postman.attach_to_server("localhost", 12000);
+    state = S_START;
 };
 
 Automata::~Automata()
@@ -59,7 +60,7 @@ void Automata::handle_msg()
             std::cout << msg.data.at(i);
         }
     }
-    std::cout << "------- MSG END -------\n"
+    std::cout << "\n------- MSG END -------\n"
               << COL_RESET << std::endl;
 }
 
@@ -130,6 +131,49 @@ void Automata::open_polling()
     // Cleanup omitted for brevity
     close(kq);
     return;
+}
+
+void Automata::run()
+{
+    while (1)
+    {
+        switch (state)
+        {
+        case S_START:
+            // TODO: add username, display name and password
+            postman.authorize("user", "User", "password");
+            state = S_AUTH;
+            break;
+
+        case S_AUTH:
+        {
+            Message msg = postman.receive_with_retry(MSG_TIMEOUT, MSG_MAX_RETRIES);
+            std::cout << "received: " << (int)msg.type << std::endl;
+            if (msg.data.size() > 0)
+            {
+                state = S_OPEN;
+            }
+            else
+            {
+                state = S_ERROR;
+            }
+            break;
+        }
+
+        case S_OPEN:
+            open_polling();
+
+            return;
+            break;
+
+        case S_ERROR:
+            std::cerr << "Error: failed to authorize." << std::endl;
+            return;
+
+        default:
+            break;
+        }
+    }
 }
 
 void Automata::print_leader()

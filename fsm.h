@@ -39,6 +39,11 @@ public:
      */
     void open_polling();
 
+    /**
+     * @brief Run the automata.
+     */
+    void run();
+
     static void print_leader();
 };
 
