@@ -1,0 +1,7 @@
+#ifndef CONSTANTS_H
+#define CONSTANTS_H
+
+#define MSG_MAX_RETRIES 3
+#define MSG_TIMEOUT 250
+
+#endif // CONSTANTS_H
