@@ -1,6 +1,7 @@
 from socket import *
 import threading
 import time
+import random
 
 
 class MessageType:
@@ -26,14 +27,41 @@ class MessageType:
             return "\033[91mUNKNOWN\033[0m"
 
 
+def send_random_message(UDPserverSocket, clientAddress):
+    while True:
+        time.sleep(random.randint(20, 30))
+
+        message = b"Hello from server"
+        response_msg = (
+            bytes([4, message[1], message[2]]) + b"cicinka" + b"\0" + message + b"\0"
+        )
+        print(f"\033[92mUDP: Sending message: {response_msg} to {clientAddress}\033[0m")
+
+        UDPserverSocket.sendto(response_msg, clientAddress)
+
+
 def udp_server():
     UDPserverPort = 12000
     UDPserverSocket = socket(AF_INET, SOCK_DGRAM)
     UDPserverSocket.bind(("", UDPserverPort))
     print(f"\033[93mUDP Server is running on port {UDPserverPort}\033[0m")
 
+    threadik = None
+
     while True:
         message, clientAddress = UDPserverSocket.recvfrom(2048)
+
+        # if threadik is None:
+        #     # start a new thread to send a random message to the client
+        #     threadik = threading.Thread(
+        #         target=send_random_message, args=(UDPserverSocket, clientAddress)
+        #     )
+        #     threadik.start()
+        # elif message[0] == 0xFF:
+        #     # stop the thread if the client sends a BYE message
+        #     threadik.join()
+        #     threadik = None
+
         changedMessage = message.upper()
         # write out the first byte of the message as a number, two next bytes as another number and the rest of the message as a string separated by bytes of value 0
         type = MessageType(message[0])
@@ -42,11 +70,19 @@ def udp_server():
             f"\033[94mUDP: Received message:\n\t{type}:{(message[2]<<1)+message[1]}:'{msg}'\n\tfrom {clientAddress}\033[0m"
         )
 
-        time.sleep(0.4)
-        print(
-            f"\033[92mUDP: Sending message: {changedMessage} to {clientAddress}\033[0m"
+        message = b"Hello from server"
+        response_msg = (
+            bytes([4, message[1], message[2]]) + b"cicinka" + b"\0" + message + b"\0"
         )
-        UDPserverSocket.sendto(changedMessage, clientAddress)
+        print(f"\033[92mUDP: Sending message: {response_msg} to {clientAddress}\033[0m")
+
+        UDPserverSocket.sendto(response_msg, clientAddress)
+
+        time.sleep(0.4)
+        response_msg = bytes([0, message[1], message[2], 0])
+        print(f"\033[92mUDP: Sending message: {response_msg} to {clientAddress}\033[0m")
+
+        UDPserverSocket.sendto(response_msg, clientAddress)
 
 
 def tcp_server():

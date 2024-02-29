@@ -10,10 +10,9 @@
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
-            "externalConsole": false,
+            "externalConsole": true,
             "MIMode": "lldb",
-            "preLaunchTask": "build",
-            "console": "integratedTerminal"
+            "preLaunchTask": "build"
         },
         {
             "name": "C/C++ Runner: Debug Session",
