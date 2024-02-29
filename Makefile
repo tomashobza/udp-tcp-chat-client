@@ -1,47 +1,31 @@
-DEBUG = 0
+CXX=g++-13
+CXXFLAGS=-std=c++20 -Wall -Wextra -pedantic -g
 
-# Compiler and Compiler Flags
-CC = gcc
-CFLAGS = -Wall -Wextra -std=c99
-ifeq ($(DEBUG), 1)
-	CFLAGS += -g
-endif
+# Define the target executable
+TARGET=bin/main
 
-# Output binaries
-UDP_CLIENT = udp-client
-TCP_CLIENT = tcp-client
+# Define source files
+SOURCES=main.cpp postman.cpp sock.cpp fsm.cpp
 
-# Source files
-SOURCES = $(wildcard *.c)
+# Define object files (not needed directly since we compile and link in one step here)
+# OBJECTS=$(SOURCES:.cpp=.o)
 
-# Build targets
-all: $(UDP_CLIENT) $(TCP_CLIENT)
+.PHONY: main run clean server
 
-$(UDP_CLIENT): udp-client.c
+# Main target
+main: $(SOURCES)
 	@mkdir -p bin
-	@$(CC) $(CFLAGS) udp-client.c $(wildcard udp/*.c) -o bin/$(UDP_CLIENT)
+	$(CXX) -o $(TARGET) $(SOURCES) $(CXXFLAGS)
 
-$(TCP_CLIENT): tcp-client.c
-	@mkdir -p bin
-	@$(CC) $(CFLAGS) tcp-client.c $(wildcard tcp/*.c) -o bin/$(TCP_CLIENT)
+# Run target
+run: main
+	@echo "\n=== Running the program ==="
+	@./$(TARGET)
 
-# Clean build files
+# Clean target
 clean:
-	rm -f bin/$(UDP_CLIENT) bin/$(TCP_CLIENT)
+	rm -f $(TARGET)
 
-build: clean all
-
-# Run targets
-run-udp: $(UDP_CLIENT)
-	@./bin/$(UDP_CLIENT)
-
-run-tcp: $(TCP_CLIENT)
-	@./bin/$(TCP_CLIENT)
-
+# Server target
 server:
 	nodemon --exec python3 python/server.py
-
-kill:
-	kill -9 $(lsof -ti:12000,12001)
-
-.PHONY: all clean run-udp run-tcp server kill

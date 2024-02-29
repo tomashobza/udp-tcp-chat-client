@@ -1,0 +1,46 @@
+@startuml class-diagram
+
+' crt-amber
+' plain
+
+' class InputParser {
+' 	.. Methods ..
+' 	+ getName()
+' 	+ getAddress()
+' 	__ private data __
+' 	int age
+' 	-- encrypted --
+' 	String password
+' }
+' class Poslol {
+' 	.. Methods ..
+' 	+ connect_to_server()
+' 	+ send_message()
+' 	__ private data __
+' 	socketaddr server
+' 	' -- encrypted --
+' 	' String password
+' }
+
+class Postman {
+	__ private data __
+    -client_socket : int
+    -server_address : sockaddr_in
+    -msg_id : int
+    -ref_msg_id : int
+	__ public methods __
+    +Postman()
+    +~Postman()
+	.. basic connection ..
+    +attach_to_server(server_hostname : const std::string &, port_number : uint16_t) : void
+	.. abstract messages ..
+    +test_send() : int
+    +authorize(username : const std::string &, display_name : const std::string &, password : const std::string &) : int
+    +join(channel_id : const std::string &, DisplayName : const std::string &) : int
+    +message(display_name : const std::string &, message_contents : const std::string &) : int
+    +error(display_name : const std::string &, message_contents : const std::string &) : int
+    +bye() : int
+    +get_client_socket() : int const
+    +get_server_address() : sockaddr_in const
+}
+@enduml
