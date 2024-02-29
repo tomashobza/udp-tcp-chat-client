@@ -15,7 +15,7 @@ typedef enum
 
 class Automata
 {
-    Postman postman;
+    IPostman *postman;
     State state = S_START;
 
 public:

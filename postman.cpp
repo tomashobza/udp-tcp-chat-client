@@ -1,18 +1,18 @@
 #include "postman.h"
 
-Postman::Postman() : client_socket()
-{
-    // // Set the socket to non-blocking mode
-    // client_socket.setSocketNonBlocking();
-    std::clog << "Created client socket: " << client_socket.getFd() << std::endl;
-}
+// UDPPostman::Postman() : client_socket()
+// {
+//     // // Set the socket to non-blocking mode
+//     // client_socket.setSocketNonBlocking();
+//     std::clog << "Created client socket: " << client_socket.getFd() << std::endl;
+// }
 
-Postman::~Postman()
-{
-    // Automatic cleanup happens here, no need for explicit calls
-}
+// UDPPostman::~Postman()
+// {
+//     // Automatic cleanup happens here, no need for explicit calls
+// }
 
-void Postman::attach_to_server(const std::string &server_hostname, uint16_t port_number)
+void UDPPostman::attach_to_server(const std::string &server_hostname, uint16_t port_number)
 {
     std::memset(&server_address, 0, sizeof(server_address));
 
@@ -27,7 +27,7 @@ void Postman::attach_to_server(const std::string &server_hostname, uint16_t port
     server_address.sin_port = htons(port_number);
 }
 
-int Postman::authorize(const std::string &username, const std::string &display_name, const std::string &password)
+int UDPPostman::authorize(const std::string &username, const std::string &display_name, const std::string &password)
 {
     // get the message data length
     size_t data_len = BEG_OFFSET + username.length() + STR_OFFSET + display_name.length() + STR_OFFSET + password.length() + STR_OFFSET;
@@ -56,7 +56,7 @@ int Postman::authorize(const std::string &username, const std::string &display_n
     return 0;
 }
 
-int Postman::join(const std::string &channel_id, const std::string &display_name)
+int UDPPostman::join(const std::string &channel_id, const std::string &display_name)
 {
     // get the message data length
     size_t data_len = BEG_OFFSET + channel_id.length() + STR_OFFSET + display_name.length();
@@ -84,7 +84,7 @@ int Postman::join(const std::string &channel_id, const std::string &display_name
     return 0;
 }
 
-int Postman::message(const std::string &display_name, const std::string &message_contents)
+int UDPPostman::message(const std::string &display_name, const std::string &message_contents)
 {
     // get the message data length
     size_t data_len = BEG_OFFSET + display_name.length() + STR_OFFSET + message_contents.length();
@@ -112,7 +112,7 @@ int Postman::message(const std::string &display_name, const std::string &message
     return 0;
 }
 
-int Postman::error(const std::string &display_name, const std::string &message_contents)
+int UDPPostman::error(const std::string &display_name, const std::string &message_contents)
 {
     // get the message data length
     size_t data_len = BEG_OFFSET + display_name.length() + STR_OFFSET + message_contents.length();
@@ -140,7 +140,7 @@ int Postman::error(const std::string &display_name, const std::string &message_c
     return 0;
 }
 
-int Postman::bye()
+int UDPPostman::bye()
 {
     // get the message data length
     size_t data_len = BEG_OFFSET;
@@ -166,17 +166,17 @@ int Postman::bye()
     return 0;
 }
 
-int Postman::get_client_socket()
+int UDPPostman::get_client_socket()
 {
     return client_socket.getFd();
 }
 
-struct sockaddr_in Postman::get_server_address()
+struct sockaddr_in UDPPostman::get_server_address()
 {
     return server_address;
 }
 
-Message Postman::receive()
+Message UDPPostman::receive()
 {
     // Allocate a buffer with a maximum expected size
     size_t maxBufferSize = 1024; // Adjust this size according to your needs
@@ -206,7 +206,7 @@ Message Postman::receive()
     return msg;
 }
 
-Message Postman::receive_confirm(int timeout_ms)
+Message UDPPostman::receive_confirm(int timeout_ms)
 {
     // Set the timeout for the socket
     client_socket.set_timeout(timeout_ms);
@@ -258,7 +258,7 @@ Message Postman::receive_confirm(int timeout_ms)
     return msg;
 }
 
-Message Postman::receive_with_retry(int timeout_ms, int max_retries)
+Message UDPPostman::receive_with_retry(int timeout_ms, int max_retries)
 {
     // Set the timeout for the socket
     client_socket.set_timeout(timeout_ms);
@@ -301,7 +301,7 @@ Message Postman::receive_with_retry(int timeout_ms, int max_retries)
     return msg;
 }
 
-bool Postman::get_reply(Message msg)
+bool IPostman::get_reply(Message msg)
 {
     if (msg.type == MessageType::REPLY && msg.data.size() > 4)
     {

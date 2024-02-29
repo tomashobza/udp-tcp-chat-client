@@ -6,7 +6,11 @@
 Automata::Automata() : postman()
 {
     std::cout << "ahoj" << std::endl;
-    postman.attach_to_server("localhost", 12000);
+
+    // TODO: add protocol seleciton
+    postman = new UDPPostman();
+
+    postman->attach_to_server("localhost", 12000);
     state = S_START;
 };
 
@@ -79,7 +83,7 @@ State Automata::open_polling()
     struct kevent evSet;
     struct kevent evList[MAX_EVENTS];
 
-    int udp_fd = postman.get_client_socket(); // Get the UDP socket
+    int udp_fd = postman->get_client_socket(); // Get the UDP socket
 
     // Monitor UDP socket for reading
     EV_SET(&evSet, udp_fd, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
@@ -96,15 +100,15 @@ State Automata::open_polling()
                   << "Waiting for events..." << std::endl;
         Automata::print_leader();
 
-        std::cout << "= stack state: " << postman.message_stack.size() << std::endl;
+        std::cout << "= stack state: " << postman->message_stack.size() << std::endl;
 
         // If there are messages in the stack, read them
-        if (postman.message_stack.size() > 0)
+        if (postman->message_stack.size() > 0)
         {
             std::clog << "READING FROM STACK" << std::endl;
 
-            Message msg = postman.message_stack.top();
-            postman.message_stack.pop();
+            Message msg = postman->message_stack.top();
+            postman->message_stack.pop();
 
             handle_msg(msg);
             continue;
@@ -119,7 +123,7 @@ State Automata::open_polling()
                 std::cout << std::endl;
 
                 // Receive the message from the server
-                Message msg = postman.receive();
+                Message msg = postman->receive();
 
                 // Check if the message leads to a state change
                 if (msg.type == BYE)
@@ -136,9 +140,9 @@ State Automata::open_polling()
                     std::clog << "Server sent an error message." << std::endl;
 
                     // Send the BYE message to the server
-                    postman.bye();
+                    postman->bye();
                     // Wait for the response
-                    Message res = postman.receive_with_retry(MSG_TIMEOUT, MSG_MAX_RETRIES);
+                    Message res = postman->receive_with_retry(MSG_TIMEOUT, MSG_MAX_RETRIES);
 
                     close(kq);
                     return S_END;
@@ -149,9 +153,9 @@ State Automata::open_polling()
                     std::clog << "Unknown message type: " << (int)msg.type << std::endl;
 
                     // Send the ERROR message to the server
-                    postman.error("User", "Unknown message type.");
+                    postman->error("User", "Unknown message type.");
                     // Wait for the response
-                    Message res = postman.receive_with_retry(MSG_TIMEOUT, MSG_MAX_RETRIES);
+                    Message res = postman->receive_with_retry(MSG_TIMEOUT, MSG_MAX_RETRIES);
 
                     close(kq);
                     return S_ERROR;
@@ -170,17 +174,17 @@ State Automata::open_polling()
                 if (msg.empty() || msg == "exit")
                 {
                     // Send the BYE message to the server
-                    postman.bye();
+                    postman->bye();
 
                     close(kq);
                     return S_END;
                 }
 
                 // Send the message to the server
-                postman.message("user", msg);
+                postman->message("user", msg);
 
                 // Wait for the response
-                Message res = postman.receive_with_retry(MSG_TIMEOUT, MSG_MAX_RETRIES);
+                Message res = postman->receive_with_retry(MSG_TIMEOUT, MSG_MAX_RETRIES);
 
                 std::cout << "(received) " << res.type << std::endl;
             }
@@ -201,7 +205,7 @@ void Automata::run()
         {
         case S_START:
             // TODO: add username, display name and password
-            postman.authorize("user", "User", "password");
+            postman->authorize("user", "User", "password");
             state = S_AUTH;
             break;
 
@@ -210,10 +214,10 @@ void Automata::run()
             try
             {
                 // Wait for the response REPLY message
-                Message msg = postman.receive_with_retry(MSG_TIMEOUT, MSG_MAX_RETRIES);
+                Message msg = postman->receive_with_retry(MSG_TIMEOUT, MSG_MAX_RETRIES);
 
                 // Check if the message is a REPLY message and had value 1
-                if (msg.type == REPLY && Postman::get_reply(msg))
+                if (msg.type == REPLY && IPostman::get_reply(msg))
                 {
                     std::clog << "Authorized." << std::endl;
                     state = S_OPEN;
@@ -246,7 +250,7 @@ void Automata::run()
             // An error occurred
             std::clog << "An error occurred." << std::endl;
             // Send the BYE message to the server
-            postman.bye();
+            postman->bye();
             // Wait for the response
             state = S_END;
 
