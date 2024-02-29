@@ -31,13 +31,17 @@ public:
 
     /**
      * @brief Handle the message received from the server.
+     *
+     * @param msg The message received from the server.
      */
-    void handle_msg();
+    void handle_msg(Message msg);
 
     /**
      * @brief Open polling for the automata for the client socket and stdin.
+     *
+     * @return State The next state of the automata.
      */
-    void open_polling();
+    State open_polling();
 
     /**
      * @brief Run the automata.

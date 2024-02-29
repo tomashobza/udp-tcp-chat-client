@@ -61,9 +61,10 @@ private:
     int ref_msg_id = 0;
 
     std::vector<uint8_t> last_message;
-    std::stack<Message> message_stack;
 
 public:
+    std::stack<Message> message_stack;
+
     /**
      * @brief Construct a new Postman object and create a socket.
      *
@@ -165,6 +166,15 @@ public:
      * @return Message - the message
      */
     Message receive_with_retry(int timeout_s, int max_retries);
+
+    /**
+     * @brief Get the boolean value of the reply message.
+     *
+     * @param msg
+     * @return true
+     * @return false
+     */
+    static bool get_reply(Message msg);
 };
 
 #endif // POSTMAN_H

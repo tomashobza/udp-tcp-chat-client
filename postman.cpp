@@ -238,16 +238,18 @@ Message Postman::receive_confirm(int timeout_ms)
         }
 
         // If the buffer is not empty and the message is a confirm, return it
-        if (msg.data.size() > 0 && msg.id == CONFIRM)
+        if (msg.data.size() > 0 && msg.type == CONFIRM)
         {
             // Unset the timeout for the socket
             client_socket.unset_timeout();
+
             return msg;
         }
-        else if (msg.data.size() > 0 && msg.id != CONFIRM)
+        else if (msg.data.size() > 0 && msg.type != CONFIRM)
         {
             // If the buffer is not empty and the message is not a confirm, push it to the stack
             message_stack.push(msg);
+            std::clog << "PUSHED TO STACK: " << msg.type << ":" << msg.id << std::endl;
         }
     }
 
@@ -266,7 +268,7 @@ Message Postman::receive_with_retry(int timeout_ms, int max_retries)
     for (int i = 0; i < max_retries; i++)
     {
         // Try to receive the message
-        msg = receive();
+        msg = receive_confirm(timeout_ms);
 
         // If the buffer is not empty, return it
         if (msg.data.size() > 0)
@@ -297,4 +299,22 @@ Message Postman::receive_with_retry(int timeout_ms, int max_retries)
     // TODO: maybe handle this error better
     throw std::runtime_error("ERROR confirm not recieved");
     return msg;
+}
+
+bool Postman::get_reply(Message msg)
+{
+    if (msg.type == MessageType::REPLY && msg.data.size() > 4)
+    {
+        int reply = (int)msg.data.at(3);
+        if (reply == 0)
+        {
+            return false;
+        }
+        else if (reply == 1)
+        {
+            return true;
+        }
+    }
+
+    throw std::runtime_error("ERROR: not a reply message");
 }
