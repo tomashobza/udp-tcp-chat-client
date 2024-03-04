@@ -1,6 +1,6 @@
 #ifndef POSTMAN_H
-
 #define POSTMAN_H
+
 #include <iostream>
 #include <cstring>
 #include <netdb.h>
@@ -11,39 +11,11 @@
 #include <vector>
 #include <sys/time.h>
 #include "sock.h"
-#include <stack>
 #include <chrono>
-
-/// TYPES ///
-
-enum MessageTypeEnum : uint8_t
-{
-    CONFIRM = 0x00,
-    REPLY = 0x01,
-    AUTH = 0x02,
-    JOIN = 0x03,
-    MSG = 0x04,
-    ERR = 0xFE,
-    BYE = 0xFF
-};
-typedef enum MessageTypeEnum MessageType;
-
-typedef uint16_t MessageID;
-
-#define BEG_OFFSET (sizeof(MessageType) + sizeof(MessageID))
-#define STR_OFFSET sizeof(uint8_t)
-
-#define MSG_MAX_RETRIES 3
-#define MSG_TIMEOUT 250
-
-typedef struct
-{
-    MessageType type;
-    MessageID id;
-    std::vector<uint8_t> data;
-} Message;
-
-/// CLASSES ///
+#include <list>
+#include <thread>
+#include "types.h"
+#include "constants.h"
 
 /**
  * @brief A class for sending messages to a server.
@@ -59,12 +31,10 @@ protected:
     int msg_id = 0;
     /** The ID of the last message received. */
     int ref_msg_id = 0;
-
-    std::vector<uint8_t> last_message;
+    // timer
+    std::chrono::time_point<std::chrono::system_clock> start_time;
 
 public:
-    std::stack<Message> message_stack;
-
     /**
      * @brief Attach to a server by hostname and port number.
      *
@@ -118,6 +88,13 @@ public:
     virtual int bye() = 0;
 
     /**
+     * @brief Send the CONFIRM message to the server.
+     *
+     * @return int - >0 (number of sent B) if successful, -1 if failed
+     */
+    virtual int confirm() = 0;
+
+    /**
      * @brief Get the client socket file descriptor.
      *
      * @return int - the client socket file descriptor
@@ -139,34 +116,23 @@ public:
     virtual Message receive() = 0;
 
     /**
-     * @brief Wait for a CONFIRM message from the server with a timeout, all other messages are pushed to a message stack.
+     * @brief Get the message ID of the next message to be sent.
      *
-     * @param timeout_ms
-     * @return Message
+     * @return MessageID
      */
-    virtual Message receive_confirm(int timeout_ms) = 0;
+    virtual MessageID get_msg_id() = 0;
 
-    /**
-     * @brief Wait for a message from the server with a timeout and retry sending las message.
-     *
-     * @param timeout_s - the timeout in seconds
-     * @param max_retries - the maximum number of retries
-     * @return Message - the message
-     */
-    virtual Message receive_with_retry(int timeout_s, int max_retries) = 0;
-
-    /**
-     * @brief Get the boolean value of the reply message.
-     *
-     * @param msg
-     * @return true
-     * @return false
-     */
-    static bool get_reply(Message msg);
+    // TODO: add comments
+    virtual void start_timer() = 0;
+    virtual int check_time() = 0;
+    virtual void check_waiters() = 0;
 };
 
 class UDPPostman : public IPostman
 {
+private:
+    std::list<ConfirmWaiter> confirm_waiters;
+
 public:
     void attach_to_server(const std::string &server_hostname, uint16_t port_number) override;
     int authorize(const std::string &username, const std::string &display_name, const std::string &password) override;
@@ -174,27 +140,31 @@ public:
     int message(const std::string &display_name, const std::string &message_contents) override;
     int error(const std::string &display_name, const std::string &message_contents) override;
     int bye() override;
+    int confirm() override;
     int get_client_socket() override;
     struct sockaddr_in get_server_address() override;
     Message receive() override;
-    Message receive_confirm(int timeout_ms) override;
-    Message receive_with_retry(int timeout_s, int max_retries) override;
+    MessageID get_msg_id() override;
+
+    void start_timer() override;
+    int check_time() override;
+    void check_waiters() override;
 };
 
-class TCPPostman : public IPostman
-{
-public:
-    void attach_to_server(const std::string &server_hostname, uint16_t port_number) override;
-    int authorize(const std::string &username, const std::string &display_name, const std::string &password) override;
-    int join(const std::string &channel_id, const std::string &display_name) override;
-    int message(const std::string &display_name, const std::string &message_contents) override;
-    int error(const std::string &display_name, const std::string &message_contents) override;
-    int bye() override;
-    int get_client_socket() override;
-    struct sockaddr_in get_server_address() override;
-    Message receive() override;
-    Message receive_confirm(int timeout_ms) override;
-    Message receive_with_retry(int timeout_s, int max_retries) override;
-};
+// class TCPPostman : public IPostman
+// {
+// public:
+//     void attach_to_server(const std::string &server_hostname, uint16_t port_number) override;
+//     int authorize(const std::string &username, const std::string &display_name, const std::string &password) override;
+//     int join(const std::string &channel_id, const std::string &display_name) override;
+//     int message(const std::string &display_name, const std::string &message_contents) override;
+//     int error(const std::string &display_name, const std::string &message_contents) override;
+//     int bye() override;
+//     int get_client_socket() override;
+//     struct sockaddr_in get_server_address() override;
+//     Message receive() override;
+//     Message receive_confirm(int timeout_ms) override;
+//     Message receive_with_retry(int timeout_s, int max_retries) override;
+// };
 
 #endif // POSTMAN_H
