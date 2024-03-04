@@ -69,8 +69,10 @@ class UdpClientTester:
             )
 
     def start_client(self, initial_input=None):
+        if self.client_process:
+            self.cleanup_client()
         self.client_process = subprocess.Popen(
-            self.client_binary,
+            [self.client_binary],
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
@@ -96,21 +98,25 @@ class UdpClientTester:
             self.client_process.stdin.write(initial_input + "\n")
             self.client_process.stdin.flush()
 
-    def send_input_to_client(self, message):
+    def cleanup_client(self):
         if self.client_process:
-            self.client_process.stdin.write(message + "\n")
-            self.client_process.stdin.flush()
+            self.client_process.terminate()
+            self.client_process.wait()
+
+    def send_input_to_client(self, message):
+        self.client_process.stdin.write(message + "\n")
+        self.client_process.stdin.flush()
 
     def receive_message(self, timeout=5):
         ready = select.select([self.server_socket], [], [], timeout)
         if ready[0]:
             data, addr = self.server_socket.recvfrom(1024)  # buffer size is 1024 bytes
-            print(f"mrd: {data}")
             return data, addr
         else:
             return None, None
 
     def run_test(self, test_case, *args, **kwargs):
+        self.start_client()  # Start a fresh client for each test
         try:
             logger.info(f"Starting test: {test_case.__name__}")
             success, message = test_case(self, *args, **kwargs)
@@ -124,14 +130,14 @@ class UdpClientTester:
                 )
         except Exception as e:
             logger.error(f"Test {test_case.__name__} EXCEPTION: {e}")
+        finally:
+            self.cleanup_client()  # Ensure the client is cleaned up after each test
 
     def cleanup(self):
-        if self.client_process:
-            self.client_process.terminate()
         self.server_socket.close()
 
 
-# Example test case
+# Example test cases
 def test_send_and_receive(udp_tester):
     udp_tester.send_input_to_client("/auth testuser testpassword testdisplayname")
     data, addr = udp_tester.receive_message(timeout=10)
@@ -148,7 +154,6 @@ def test_msg_without_auth(udp_tester):
     data, addr = udp_tester.receive_message(timeout=10)
     has_corr_header = data[0] == MessageType.BYE
     has_corr_id = int(data[2] << 8 | data[1]) == 0
-    print("header", int(data[2] << 8 | data[1]))
     if has_corr_header and has_corr_id:
         return True, f"Received: {data}"
     else:
@@ -156,17 +161,18 @@ def test_msg_without_auth(udp_tester):
 
 
 def main():
-    if argv[1].find("--help") != -1:
+    if len(argv) < 2 or "--help" in argv[1]:
         print("Usage: python3 testing_server.py <path_to_client_binary>")
         return
 
     tester = UdpClientTester(argv[1])
-    tester.start_client()
 
-    testcases = [test_send_and_receive, test_msg_without_auth]
+    # Define test cases to run
+    test_cases = [test_send_and_receive, test_msg_without_auth]
 
-    for test in testcases:
-        print(f"== Running test {test.__name__} ==")
+    # Run each test case
+    for test in test_cases:
+        tester.run_test(test)
 
     # Cleanup
     tester.cleanup()
