@@ -2,7 +2,7 @@ CXX=g++-13
 CXXFLAGS=-std=c++20 -Wall -Wextra -pedantic -g
 
 # Define the target executable
-TARGET=bin/main
+TARGET=bin/ipk24chat-client
 
 # Define source files
 SOURCES=$(wildcard *.cpp)
@@ -21,6 +21,9 @@ main: $(SOURCES)
 run: main
 	@echo "\n=== Running the program ==="
 	@./$(TARGET)
+
+test:
+	python3 testing_server.py bin/ipk24chat-client
 
 # Clean target
 clean:

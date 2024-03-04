@@ -8,7 +8,7 @@ Automata::Automata() : postman()
     // TODO: add protocol seleciton
     postman = new UDPPostman();
 
-    postman->attach_to_server("localhost", 12000);
+    postman->attach_to_server("localhost", 4567);
     state = S_START;
 };
 
@@ -347,6 +347,11 @@ void Automata::start_yaaping()
         {
             std::string input;
             std::getline(std::cin, input);
+            // delete the last character if it is a newline
+            if (input.back() == '\n')
+            {
+                input.pop_back();
+            }
 
             // If the input is empty or "exit", break the loop
             if (input.empty() || input == "exit")
@@ -354,17 +359,33 @@ void Automata::start_yaaping()
                 break;
             }
 
-            std::clog << "> AUTH message " << (int)postman->get_msg_id() << std::endl;
-            postman->authorize("user", "User", "password");
+            std::vector<std::string> input_tokens = InputParser::tokenize_input(input);
+            for (auto token : input_tokens)
+            {
+                std::cout << "Token: " << token << std::endl;
+            }
 
-            // TODO: add logic to parse stdin
+            // TODO: handle input_tokens.size == 0
+
+            Command cmd = InputParser::get_command(input_tokens.at(0));
 
             // Next state logic for stdin input
             switch (state)
             {
             case S_START:
-                // TODO: if input not authorize, go to S_ERROR
-                this->set_state(S_AUTH);
+                if (cmd == CMD_AUTH)
+                {
+                    if (input_tokens.size() != 4)
+                    {
+                        throw std::runtime_error("Invalid number of arguments for /auth command.");
+                    }
+                    postman->authorize(input_tokens.at(1), input_tokens.at(3), input_tokens.at(2));
+                    this->set_state(S_AUTH);
+                }
+                else
+                {
+                    this->set_state(S_ERROR);
+                }
                 break;
 
             case S_AUTH:

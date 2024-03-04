@@ -2,6 +2,7 @@
 #define AUTOMATA_H
 
 #include "postman.h"
+#include "input_parser.h"
 #include <sys/event.h>
 #include <iostream>
 #include <sys/socket.h>

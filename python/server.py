@@ -67,7 +67,7 @@ class MessageType:
 
 
 def udp_server():
-    UDPserverPort = 12000
+    UDPserverPort = 4567
     UDPserverSocket = socket(AF_INET, SOCK_DGRAM)
     UDPserverSocket.bind(("", UDPserverPort))
     print(f"\033[93mUDP Server is running on port {UDPserverPort}\033[0m")
@@ -92,6 +92,7 @@ def udp_server():
         # write out the first byte of the message as a number, two next bytes as another number and the rest of the message as a string separated by bytes of value 0
         type = MessageType(message[0])
         msg = ",".join(message[3:].decode().split("\0"))
+        print(f"Received: {message}")
         print(
             f"\033[94mUDP: Received message:\n\t{type}:{(message[2]<<1)+message[1]}:'{msg}'\n\tfrom {clientAddress}\033[0m"
         )
@@ -114,7 +115,7 @@ def udp_server():
 
 
 def tcp_server():
-    TCPserverPort = 12001
+    TCPserverPort = 4568
     TCPserverSocket = socket(AF_INET, SOCK_STREAM)
     TCPserverSocket.bind(("", TCPserverPort))
     TCPserverSocket.listen(1)
