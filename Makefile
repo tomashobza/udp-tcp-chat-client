@@ -23,7 +23,7 @@ run: main
 	@./$(TARGET)
 
 test:
-	python3 testing_server.py bin/ipk24chat-client
+	python3 python/testing_server.py bin/ipk24chat-client
 
 # Clean target
 clean:
