@@ -5,6 +5,14 @@ import random
 
 
 class MessageType:
+    CONFIRM = 0
+    REPLY = 1
+    AUTH = 2
+    JOIN = 3
+    MSG = 4
+    ERR = 0xFE
+    BYE = 0xFF
+
     def __init__(self, enum):
         self.enum = enum
 
@@ -28,43 +36,23 @@ class MessageType:
 
 
 def send_random_message(UDPserverSocket, clientAddress):
-    while True:
-        time.sleep(random.randint(20, 30))
+    index = 0
 
-        message = b"Hello from server"
-        response_msg = (
-            bytes([4, message[1], message[2]]) + b"cicinka" + b"\0" + message + b"\0"
+    while True:
+        time.sleep(random.randint(2, 10))
+
+        response_msg = bytes([4, 0, index]) + b"cicinka" + b"\0" + b"\0"
+        print(
+            f"\033[92mRandom UDP: Sending message: {response_msg} to {clientAddress}\033[0m"
         )
-        print(f"\033[92mUDP: Sending message: {response_msg} to {clientAddress}\033[0m")
+
+        index += 1
 
         UDPserverSocket.sendto(response_msg, clientAddress)
 
 
-class MessageType:
-    def __init__(self, enum):
-        self.enum = enum
-
-    def __repr__(self):
-        if self.enum == 0:
-            return "CONFIRM"
-        elif self.enum == 1:
-            return "REPLY"
-        elif self.enum == 2:
-            return "AUTH"
-        elif self.enum == 3:
-            return "JOIN"
-        elif self.enum == 4:
-            return "MSG"
-        elif self.enum == 0xFE:
-            return "ERR"
-        elif self.enum == 0xFF:
-            return "BYE"
-        else:
-            return "UNKNOWN"
-
-
 def udp_server():
-    UDPserverPort = 12000
+    UDPserverPort = 4567
     UDPserverSocket = socket(AF_INET, SOCK_DGRAM)
     UDPserverSocket.bind(("", UDPserverPort))
     print(f"\033[93mUDP Server is running on port {UDPserverPort}\033[0m")
@@ -89,27 +77,40 @@ def udp_server():
         # write out the first byte of the message as a number, two next bytes as another number and the rest of the message as a string separated by bytes of value 0
         type = MessageType(message[0])
         msg = ",".join(message[3:].decode().split("\0"))
+        print(f"Received: {message}")
         print(
             f"\033[94mUDP: Received message:\n\t{type}:{(message[2]<<1)+message[1]}:'{msg}'\n\tfrom {clientAddress}\033[0m"
         )
 
-        message = b"Hello from server"
-        response_msg = (
-            bytes([4, message[1], message[2]]) + b"cicinka" + b"\0" + message + b"\0"
-        )
-        print(f"\033[92mUDP: Sending message: {response_msg} to {clientAddress}\033[0m")
+        # message = b"Hello from server"
+        # response_msg = (
+        #     bytes([4, message[1], message[2]]) + b"cicinka" + b"\0" + message + b"\0"
+        # )
+        # print(f"\033[92mUDP: Sending message: {response_msg} to {clientAddress}\033[0m")
 
-        UDPserverSocket.sendto(response_msg, clientAddress)
+        # UDPserverSocket.sendto(response_msg, clientAddress)
+        if message[0] == 0:
+            continue
 
         time.sleep(0.4)
-        response_msg = bytes([0, message[1], message[2], 0])
+        response_msg = bytes([0, 0, (message[2] << 1) + message[1]])
         print(f"\033[92mUDP: Sending message: {response_msg} to {clientAddress}\033[0m")
 
         UDPserverSocket.sendto(response_msg, clientAddress)
+
+        if message[0] == MessageType.AUTH:
+            response_msg = bytes(
+                [MessageType.REPLY, 0, 0, 1, message[1], message[2], 0]
+            )
+            print(
+                f"\033[92mUDP: Sending message: {response_msg} to {clientAddress}\033[0m"
+            )
+
+            UDPserverSocket.sendto(response_msg, clientAddress)
 
 
 def tcp_server():
-    TCPserverPort = 12001
+    TCPserverPort = 4568
     TCPserverSocket = socket(AF_INET, SOCK_STREAM)
     TCPserverSocket.bind(("", TCPserverPort))
     TCPserverSocket.listen(1)
