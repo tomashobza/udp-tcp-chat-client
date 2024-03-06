@@ -5,7 +5,7 @@ CXXFLAGS=-std=c++20 -Wall -Wextra -pedantic -g
 TARGET=bin/ipk24chat-client
 
 # Define source files
-SOURCES=$(wildcard *.cpp)
+SOURCES=$(wildcard src/*.cpp)
 
 # Define object files (not needed directly since we compile and link in one step here)
 # OBJECTS=$(SOURCES:.cpp=.o)
@@ -15,12 +15,12 @@ SOURCES=$(wildcard *.cpp)
 # Main target
 main: $(SOURCES)
 	@mkdir -p bin
-	$(CXX) -o $(TARGET) $(SOURCES) $(CXXFLAGS)
+	$(CXX) -I./include -o $(TARGET) $(SOURCES) $(CXXFLAGS)
 
 # Run target
 run: main
 	@echo "\n=== Running the program ==="
-	@./$(TARGET)
+	@./$(TARGET) -t udp
 
 test:
 	python3 python/testing_server.py bin/ipk24chat-client

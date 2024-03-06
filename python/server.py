@@ -5,6 +5,14 @@ import random
 
 
 class MessageType:
+    CONFIRM = 0
+    REPLY = 1
+    AUTH = 2
+    JOIN = 3
+    MSG = 4
+    ERR = 0xFE
+    BYE = 0xFF
+
     def __init__(self, enum):
         self.enum = enum
 
@@ -43,29 +51,6 @@ def send_random_message(UDPserverSocket, clientAddress):
         UDPserverSocket.sendto(response_msg, clientAddress)
 
 
-class MessageType:
-    def __init__(self, enum):
-        self.enum = enum
-
-    def __repr__(self):
-        if self.enum == 0:
-            return "CONFIRM"
-        elif self.enum == 1:
-            return "REPLY"
-        elif self.enum == 2:
-            return "AUTH"
-        elif self.enum == 3:
-            return "JOIN"
-        elif self.enum == 4:
-            return "MSG"
-        elif self.enum == 0xFE:
-            return "ERR"
-        elif self.enum == 0xFF:
-            return "BYE"
-        else:
-            return "UNKNOWN"
-
-
 def udp_server():
     UDPserverPort = 4567
     UDPserverSocket = socket(AF_INET, SOCK_DGRAM)
@@ -77,16 +62,16 @@ def udp_server():
     while True:
         message, clientAddress = UDPserverSocket.recvfrom(2048)
 
-        if threadik is None:
-            # start a new thread to send a random message to the client
-            threadik = threading.Thread(
-                target=send_random_message, args=(UDPserverSocket, clientAddress)
-            )
-            threadik.start()
-        elif message[0] == 0xFF:
-            # stop the thread if the client sends a BYE message
-            threadik.join()
-            threadik = None
+        # if threadik is None:
+        #     # start a new thread to send a random message to the client
+        #     threadik = threading.Thread(
+        #         target=send_random_message, args=(UDPserverSocket, clientAddress)
+        #     )
+        #     threadik.start()
+        # elif message[0] == 0xFF:
+        #     # stop the thread if the client sends a BYE message
+        #     threadik.join()
+        #     threadik = None
 
         changedMessage = message.upper()
         # write out the first byte of the message as a number, two next bytes as another number and the rest of the message as a string separated by bytes of value 0
@@ -112,6 +97,16 @@ def udp_server():
         print(f"\033[92mUDP: Sending message: {response_msg} to {clientAddress}\033[0m")
 
         UDPserverSocket.sendto(response_msg, clientAddress)
+
+        if message[0] == MessageType.AUTH:
+            response_msg = bytes(
+                [MessageType.REPLY, 0, 0, 1, message[1], message[2], 0]
+            )
+            print(
+                f"\033[92mUDP: Sending message: {response_msg} to {clientAddress}\033[0m"
+            )
+
+            UDPserverSocket.sendto(response_msg, clientAddress)
 
 
 def tcp_server():
