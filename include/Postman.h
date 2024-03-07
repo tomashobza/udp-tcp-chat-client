@@ -111,6 +111,15 @@ public:
      * @return Message
      */
     virtual PollResult poll_for_messages() = 0;
+
+    // TODO: add comments
+    virtual ConfirmMessage data_to_confirm(std::vector<uint8_t> data) = 0;
+    virtual ReplyMessage data_to_reply(std::vector<uint8_t> data) = 0;
+    virtual AuthMessage data_to_auth(std::vector<uint8_t> data) = 0;
+    virtual JoinMessage data_to_join(std::vector<uint8_t> data) = 0;
+    virtual MsgMessage data_to_msg(std::vector<uint8_t> data) = 0;
+    virtual ErrMessage data_to_err(std::vector<uint8_t> data) = 0;
+    virtual ByeMessage data_to_bye(std::vector<uint8_t> data) = 0;
 };
 
 #endif // POSTMAN_H

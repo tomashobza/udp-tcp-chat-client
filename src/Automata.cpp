@@ -35,7 +35,7 @@ void Automata::rename(const std::string &new_display_name)
 void Automata::run()
 {
     // Run the automata
-    while (state != S_END)
+    while (1)
     {
         switch (state)
         {
@@ -53,12 +53,15 @@ void Automata::run()
             break;
         case S_END:
             state = s_end();
+            return;
             break;
         default:
             state = s_error();
             break;
         }
     }
+
+    return;
 };
 
 State Automata::s_start()
@@ -72,7 +75,7 @@ State Automata::s_start()
         // Parse the message
         if (res.message.type == MessageType::AUTH)
         {
-            AuthMessage auth = MessageHelper::to_auth(res.message.data);
+            AuthMessage auth = postman->data_to_auth(res.message.data);
             // Authorize the user
             postman->authorize(auth.username, display_name, auth.password);
             return S_AUTH;
@@ -87,12 +90,19 @@ State Automata::s_start()
     return state;
 }
 
-State Automata::s_auth() {}
+State Automata::s_auth()
+{
+    return S_END;
+}
 
 State Automata::s_open() {}
 
 State Automata::s_error() {}
 
-State Automata::s_end() {}
+State Automata::s_end()
+{
+    std::cout << "Goodbye!" << std::endl;
+    return S_END;
+}
 
 void Automata::run() {}

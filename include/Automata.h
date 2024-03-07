@@ -5,7 +5,6 @@
 #include "postman.h"
 #include "UdpPostman.h"
 #include "TcpPostman.h"
-#include "MessageHelper.h"
 
 class Automata
 {

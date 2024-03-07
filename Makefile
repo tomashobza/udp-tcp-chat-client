@@ -5,10 +5,8 @@ CXXFLAGS=-std=c++20 -Wall -Wextra -pedantic -g
 TARGET=bin/ipk24chat-client
 
 # Define source files
-SOURCES=$(wildcard src/*.cpp)
-
-# Define object files (not needed directly since we compile and link in one step here)
-# OBJECTS=$(SOURCES:.cpp=.o)
+# SOURCES=$(wildcard src/*.cpp)
+SOURCES=src/main.cpp src/ArgParser.cpp
 
 .PHONY: main run clean server
 
@@ -20,7 +18,7 @@ main: $(SOURCES)
 # Run target
 run: main
 	@echo "\n=== Running the program ==="
-	@./$(TARGET) -t udp
+	@./$(TARGET) -t udp -s localhost
 
 test:
 	python3 python/testing_server.py bin/ipk24chat-client
