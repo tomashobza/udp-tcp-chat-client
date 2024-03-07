@@ -129,4 +129,19 @@ typedef struct
     Message message;
 } PollResult;
 
+typedef enum
+{
+    CMD_AUTH,
+    CMD_JOIN,
+    CMD_RENAME,
+    CMD_MSG,
+    CMD_HELP
+} CommandType;
+
+typedef struct
+{
+    CommandType type;
+    std::vector<std::string> args;
+} Command;
+
 #endif // TYPES_H

@@ -95,14 +95,18 @@ State Automata::s_auth()
     return S_END;
 }
 
-State Automata::s_open() {}
+State Automata::s_open()
+{
+    return state;
+}
 
-State Automata::s_error() {}
+State Automata::s_error()
+{
+    return state;
+}
 
 State Automata::s_end()
 {
     std::cout << "Goodbye!" << std::endl;
     return S_END;
 }
-
-void Automata::run() {}

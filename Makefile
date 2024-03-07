@@ -6,7 +6,7 @@ TARGET=bin/ipk24chat-client
 
 # Define source files
 # SOURCES=$(wildcard src/*.cpp)
-SOURCES=src/main.cpp src/ArgParser.cpp
+SOURCES=src/main.cpp src/ArgParser.cpp src/InputParser.cpp
 
 .PHONY: main run clean server
 
