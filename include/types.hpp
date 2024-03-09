@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <string>
 #include <vector>
+#include "constants.hpp"
 
 enum MessageTypeEnum : uint8_t
 {
@@ -18,9 +19,6 @@ enum MessageTypeEnum : uint8_t
 typedef enum MessageTypeEnum MessageType;
 
 typedef uint16_t MessageID;
-
-#define BEG_OFFSET (sizeof(MessageType) + sizeof(MessageID))
-#define STR_OFFSET sizeof(uint8_t)
 
 /// Message contents ///
 typedef struct
@@ -70,17 +68,13 @@ struct IMessage
 {
     MessageType type;
     MessageID id;
-    // union
-    // {
-    //     ConfirmMessage confirm;
-    //     ReplyMessage reply;
-    //     AuthMessage auth;
-    //     JoinMessage join;
-    //     MsgMessage msg;
-    //     ErrMessage err;
-    //     ByeMessage bye;
-    // } contents;
-    std::vector<uint8_t> data;
+    MessageID ref_id;
+    uint8_t result;
+    std::string username;
+    std::string display_name;
+    std::string password;
+    std::string channel_id;
+    std::string contents;
 };
 
 typedef struct IMessage Message;
@@ -128,6 +122,8 @@ typedef struct
     PollResultType type;
     Message message;
 } PollResult;
+
+typedef std::vector<PollResult> PollResults;
 
 typedef enum
 {

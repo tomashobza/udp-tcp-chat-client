@@ -3,7 +3,7 @@
 
 #include <iostream>
 #include <string>
-#include "types.h"
+#include "types.hpp"
 
 class Utils
 {

@@ -1,10 +1,10 @@
 #ifndef AUTOMATA_H
 #define AUTOMATA_H
 
-#include "types.h"
-#include "postman.h"
-#include "UdpPostman.h"
-#include "TcpPostman.h"
+#include "types.hpp"
+#include "Postman.hpp"
+#include "UdpPostman.hpp"
+#include "TcpPostman.hpp"
 
 class Automata
 {

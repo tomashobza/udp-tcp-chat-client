@@ -13,7 +13,10 @@
 #include <chrono>
 #include <list>
 #include <thread>
-#include "types.h"
+#include <poll.h>
+#include "types.hpp"
+#include "constants.hpp"
+#include "InputParser.hpp"
 
 class IPostman
 {
@@ -23,11 +26,13 @@ protected:
     /** Server address */
     struct sockaddr_in server_address;
     /** The ID of the next message to be sent. */
-    int msg_id = 0;
+    uint16_t msg_id = 0;
     /** The ID of the last message received. */
-    int ref_msg_id = 0;
+    uint16_t ref_msg_id = 0;
     /** The timestamp of the last time check. */
     std::chrono::time_point<std::chrono::system_clock> timestamp;
+    /** Display name */
+    std::string display_name;
 
 public:
     /**
@@ -103,23 +108,17 @@ public:
      */
     virtual struct sockaddr_in get_server_address() = 0;
 
-    // virtual void send_message(const IMessage &message) = 0;
-
     /**
      * @brief Receive a message from the server or stdin.
      *
      * @return Message
      */
-    virtual PollResult poll_for_messages() = 0;
+    virtual PollResults poll_for_messages() = 0;
+
+    virtual Message receive() = 0;
 
     // TODO: add comments
-    virtual ConfirmMessage data_to_confirm(std::vector<uint8_t> data) = 0;
-    virtual ReplyMessage data_to_reply(std::vector<uint8_t> data) = 0;
-    virtual AuthMessage data_to_auth(std::vector<uint8_t> data) = 0;
-    virtual JoinMessage data_to_join(std::vector<uint8_t> data) = 0;
-    virtual MsgMessage data_to_msg(std::vector<uint8_t> data) = 0;
-    virtual ErrMessage data_to_err(std::vector<uint8_t> data) = 0;
-    virtual ByeMessage data_to_bye(std::vector<uint8_t> data) = 0;
+    virtual Message data_to_message(std::vector<uint8_t> data) = 0;
 };
 
 #endif // POSTMAN_H
