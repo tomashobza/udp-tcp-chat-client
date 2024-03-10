@@ -56,7 +56,10 @@ def udp_server():
         UDPserverSocket.sendto(
             bytes([MessageType.CONFIRM, message[1], message[2]]), clientAddress
         )
-        cprint(f"UDP: Sent CONFIRM to {clientAddress}", "magenta")
+        cprint(
+            f"UDP: Sent CONFIRM {bytes([MessageType.CONFIRM, message[1], message[2]])} to {clientAddress}",
+            "magenta",
+        )
 
         # AUTH state
         if message_type == MessageType.AUTH:

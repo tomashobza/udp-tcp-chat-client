@@ -156,7 +156,6 @@ State Automata::s_open()
             {
                 // Send the message
                 postman->message(display_name, res.message.contents);
-                std::cout << "Message sent!" << std::endl;
             }
         }
 

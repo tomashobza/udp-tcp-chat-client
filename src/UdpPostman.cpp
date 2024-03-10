@@ -83,14 +83,18 @@ int UDPPostman::join(const std::string &channel_id, const std::string &display_n
     // send the message
     ssize_t n = sendto(client_socket, data.data(), data_len, 0,
                        (struct sockaddr *)&server_address, sizeof(server_address));
-    // increment the message ID
-    msg_id++;
 
     // check for errors
     if (n < 0)
     {
         throw std::runtime_error("ERROR sending JOIN message");
     }
+
+    // Push the message to the queue of messages to be confirmed
+    confirm_waiters.push_back(ConfirmWaiter{MSG_MAX_RETRIES, MSG_TIMEOUT, (MessageID)msg_id, data});
+
+    // increment the message ID
+    msg_id++;
 
     return 0;
 }
@@ -110,14 +114,20 @@ int UDPPostman::message(const std::string &display_name, const std::string &mess
     // send the message
     ssize_t n = sendto(client_socket, data.data(), data_len, 0,
                        (struct sockaddr *)&server_address, sizeof(server_address));
-    // increment the message ID
-    msg_id++;
 
     // check for errors
     if (n < 0)
     {
         throw std::runtime_error("ERROR sending MSG message");
     }
+
+    std::cout << "Message sent!" << msg_id - 1 << std::endl;
+
+    // Push the message to the queue of messages to be confirmed
+    confirm_waiters.push_back(ConfirmWaiter{MSG_MAX_RETRIES, MSG_TIMEOUT, (MessageID)msg_id, data});
+
+    // increment the message ID
+    msg_id++;
 
     return 0;
 }
@@ -137,14 +147,18 @@ int UDPPostman::error(const std::string &display_name, const std::string &messag
     // send the message
     ssize_t n = sendto(client_socket, data.data(), data_len, 0,
                        (struct sockaddr *)&server_address, sizeof(server_address));
-    // increment the message ID
-    msg_id++;
 
     // check for errors
     if (n < 0)
     {
         throw std::runtime_error("ERROR sending MSG message");
     }
+
+    // Push the message to the queue of messages to be confirmed
+    confirm_waiters.push_back(ConfirmWaiter{MSG_MAX_RETRIES, MSG_TIMEOUT, (MessageID)msg_id, data});
+
+    // increment the message ID
+    msg_id++;
 
     return 0;
 }
@@ -162,14 +176,18 @@ int UDPPostman::bye()
     // send the message
     ssize_t n = sendto(client_socket, data.data(), data_len, 0,
                        (struct sockaddr *)&server_address, sizeof(server_address));
-    // increment the message ID
-    msg_id++;
 
     // check for errors
     if (n < 0)
     {
         throw std::runtime_error("ERROR sending BYE message");
     }
+
+    // Push the message to the queue of messages to be confirmed
+    confirm_waiters.push_back(ConfirmWaiter{MSG_MAX_RETRIES, MSG_TIMEOUT, (MessageID)msg_id, data});
+
+    // increment the message ID
+    msg_id++;
 
     return 0;
 }
@@ -195,6 +213,12 @@ int UDPPostman::confirm()
     {
         throw std::runtime_error("ERROR sending BYE message");
     }
+
+    // Push the message to the queue of messages to be confirmed
+    confirm_waiters.push_back(ConfirmWaiter{MSG_MAX_RETRIES, MSG_TIMEOUT, (MessageID)msg_id, data});
+
+    // increment the message ID
+    msg_id++;
 
     return 0;
 }
@@ -342,7 +366,6 @@ Message UDPPostman::receive()
     // If the message is a confirmation, remove the waiting message from the queue
     if (msg.type == MessageType::CONFIRM)
     {
-
         // If the message is a confirmation, remove the message from the queue
         if (!confirm_waiters.empty())
         {
@@ -354,7 +377,9 @@ Message UDPPostman::receive()
                     if ((MessageType)(it->data.at(0)) == MessageType::AUTH)
                     {
                         std::clog << "moving to port: " << ntohs(new_server_address.sa_data[0]) << std::endl;
-                        // this->server_address.sin_port = ntohs(new_server_address.sa_data[0]);
+                        std::clog << this->server_address.sin_port << std::endl;
+                        std::clog << new_server_address.sa_data[0] << std::endl;
+                        // this->server_address.sin_port = new_server_address.sa_data[0];
                     }
                     confirm_waiters.erase(it);
                     std::clog << "CONFIRMED " << msg.ref_id << std::endl;
@@ -384,7 +409,7 @@ Message UDPPostman::data_to_message(std::vector<uint8_t> data)
         Message msg;
         msg.type = MessageType::CONFIRM;
         std::memcpy(&msg.ref_id, &data.at(1), sizeof(MessageID));
-        msg.ref_id = ntohs(msg.ref_id);
+        // msg.ref_id = ntohs(msg.ref_id);
         return msg;
     }
     case MessageType::REPLY:
@@ -392,7 +417,7 @@ Message UDPPostman::data_to_message(std::vector<uint8_t> data)
         Message msg;
         msg.type = MessageType::REPLY;
         std::memcpy(&msg.id, &data.at(1), sizeof(MessageID));
-        msg.id = ntohs(msg.id);
+        // msg.id = ntohs(msg.id);
         msg.result = data.at(3);
         std::memcpy(&msg.ref_id, &data.at(4), sizeof(MessageID));
         msg.ref_id = ntohs(msg.ref_id);
@@ -405,7 +430,7 @@ Message UDPPostman::data_to_message(std::vector<uint8_t> data)
         Message msg;
         msg.type = MessageType::AUTH;
         std::memcpy(&msg.id, &data.at(1), sizeof(MessageID));
-        msg.id = ntohs(msg.id);
+        // msg.id = ntohs(msg.id);
         ssize_t i = BEG_OFFSET;
         while (data.at(i) != 0)
         {
@@ -432,7 +457,7 @@ Message UDPPostman::data_to_message(std::vector<uint8_t> data)
         Message msg;
         msg.type = MessageType::JOIN;
         std::memcpy(&msg.id, &data.at(1), sizeof(MessageID));
-        msg.id = ntohs(msg.id);
+        // msg.id = ntohs(msg.id);
         ssize_t i = BEG_OFFSET;
         while (data.at(i) != 0)
         {
@@ -453,7 +478,7 @@ Message UDPPostman::data_to_message(std::vector<uint8_t> data)
         Message msg;
         msg.type = MessageType::MSG;
         std::memcpy(&msg.id, &data.at(1), sizeof(MessageID));
-        msg.id = ntohs(msg.id);
+        // msg.id = ntohs(msg.id);
         ssize_t i = BEG_OFFSET;
         while (data.at(i) != 0)
         {
@@ -474,7 +499,7 @@ Message UDPPostman::data_to_message(std::vector<uint8_t> data)
         Message msg;
         msg.type = MessageType::ERR;
         std::memcpy(&msg.id, &data.at(1), sizeof(MessageID));
-        msg.id = ntohs(msg.id);
+        // msg.id = ntohs(msg.id);
         ssize_t i = BEG_OFFSET;
         while (data.at(i) != 0)
         {
@@ -495,7 +520,7 @@ Message UDPPostman::data_to_message(std::vector<uint8_t> data)
         Message msg;
         msg.type = MessageType::BYE;
         std::memcpy(&msg.id, &data.at(1), sizeof(MessageID));
-        msg.id = ntohs(msg.id);
+        // msg.id = ntohs(msg.id);
         return msg;
     }
 
