@@ -5,8 +5,7 @@ CXXFLAGS=-std=c++20 -Wall -Wextra -pedantic -g
 TARGET=bin/ipk24chat-client
 
 # Define source files
-# SOURCES=$(wildcard src/*.cpp)
-SOURCES=src/main.cpp src/ArgParser.cpp src/InputParser.cpp
+SOURCES=$(wildcard src/*.cpp)
 
 .PHONY: main run clean server
 
@@ -20,8 +19,11 @@ run: main
 	@echo "\n=== Running the program ==="
 	@./$(TARGET) -t udp -s localhost
 
+run-only:
+	@./$(TARGET) -t udp -s localhost
+
 test:
-	python3 python/testing_server.py bin/ipk24chat-client
+	python3.11 python/testing_server.py bin/ipk24chat-client
 
 # Clean target
 clean:
@@ -29,4 +31,4 @@ clean:
 
 # Server target
 server:
-	nodemon --exec python3 python/server.py
+	nodemon --exec python3.11 python/server.py

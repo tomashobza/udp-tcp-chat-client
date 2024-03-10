@@ -1,4 +1,4 @@
-#include "send.h"
+#include "send.hpp"
 
 #define BEG_OFFSET (sizeof(MessageType) + sizeof(MessageID))
 #define STR_OFFSET sizeof(uint8_t)

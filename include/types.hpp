@@ -14,7 +14,8 @@ enum MessageTypeEnum : uint8_t
     JOIN = 0x03,
     MSG = 0x04,
     ERR = 0xFE,
-    BYE = 0xFF
+    BYE = 0xFF,
+    UNKNOWN = 0x05
 };
 typedef enum MessageTypeEnum MessageType;
 

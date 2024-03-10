@@ -1,4 +1,4 @@
-#include "InputParser.h"
+#include "InputParser.hpp"
 
 Command InputParser::parse_input()
 {

@@ -1,4 +1,4 @@
-#include "ArgParser.h"
+#include "ArgParser.hpp"
 
 // TODO: Implement the parse function
 Args ArgParser::parse(int argc, char *argv[])

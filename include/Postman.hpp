@@ -116,9 +116,6 @@ public:
     virtual PollResults poll_for_messages() = 0;
 
     virtual Message receive() = 0;
-
-    // TODO: add comments
-    virtual Message data_to_message(std::vector<uint8_t> data) = 0;
 };
 
 #endif // POSTMAN_H

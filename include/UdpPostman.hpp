@@ -23,8 +23,8 @@ public:
 
     Message receive() override;
 
+    Message data_to_message(std::vector<uint8_t> data);
+
     void check_waiters();
     int check_time();
-
-    Message data_to_message(std::vector<uint8_t> data) override;
 };

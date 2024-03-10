@@ -1,4 +1,4 @@
-#include "Automata.h"
+#include "Automata.hpp"
 
 Automata::Automata(Args args)
 {
@@ -8,9 +8,9 @@ Automata::Automata(Args args)
     case Protocol::UDP:
         postman = new UDPPostman(args);
         break;
-    case Protocol::TCP:
-        postman = new TCPPostman(args);
-        break;
+    // case Protocol::TCP:
+    //     postman = new TCPPostman(args);
+    //     break;
     default:
         break;
     }
@@ -20,10 +20,33 @@ Automata::Automata(Args args)
     state = S_START;
 };
 
+Automata::~Automata(){};
+
 State Automata::set_state(State new_state)
 {
-    std::clog << "State changed from " << state << " to " << new_state << std::endl;
     state = new_state;
+    std::clog << "\033[0;33m#";
+    switch (state)
+    {
+    case S_START:
+        std::clog << " S_START";
+        break;
+    case S_AUTH:
+        std::clog << " S_AUTH";
+        break;
+    case S_OPEN:
+        std::clog << " S_OPEN";
+        break;
+    case S_ERROR:
+        std::clog << " S_ERROR";
+        break;
+    case S_END:
+        std::clog << " S_END";
+        break;
+    default:
+        break;
+    }
+    std::clog << "\033[0m" << std::endl;
     return state;
 };
 
@@ -40,23 +63,23 @@ void Automata::run()
         switch (state)
         {
         case S_START:
-            state = s_start();
+            s_start();
             break;
         case S_AUTH:
-            state = s_auth();
+            s_auth();
             break;
         case S_OPEN:
-            state = s_open();
+            s_open();
             break;
         case S_ERROR:
-            state = s_error();
+            s_error();
             break;
         case S_END:
-            state = s_end();
+            s_end();
             return;
             break;
         default:
-            state = s_error();
+            s_error();
             break;
         }
     }
@@ -67,23 +90,25 @@ void Automata::run()
 State Automata::s_start()
 {
     // Poll for messages
-    PollResult res = postman->poll_for_messages();
+    PollResults results = postman->poll_for_messages();
 
-    // Handle the user message (ignore server messages)
-    if (res.type == PollResultType::USER)
+    for (auto &res : results)
     {
-        // Parse the message
-        if (res.message.type == MessageType::AUTH)
+        // Handle the user message (ignore server messages)
+        if (res.type == PollResultType::USER)
         {
-            AuthMessage auth = postman->data_to_auth(res.message.data);
-            // Authorize the user
-            postman->authorize(auth.username, display_name, auth.password);
-            return S_AUTH;
-        }
-        else
-        {
-            // Error
-            return S_ERROR;
+            // Parse the message
+            if (res.message.type == MessageType::AUTH)
+            {
+                Message auth = res.message;
+                // Authorize the user
+                postman->authorize(auth.username, display_name, auth.password);
+                set_state(S_AUTH);
+            }
+            else
+            {
+                set_state(S_ERROR);
+            }
         }
     }
 
@@ -92,11 +117,52 @@ State Automata::s_start()
 
 State Automata::s_auth()
 {
-    return S_END;
+    // Poll for messages
+    PollResults results = postman->poll_for_messages();
+
+    for (auto &res : results)
+    {
+        // Handle the user message (ignore server messages)
+        if (res.type == PollResultType::SERVER)
+        {
+            std::cout << "Received server message: " << (int)res.message.type << std::endl;
+            if (res.message.type == MessageType::REPLY)
+            {
+                // TODO: check id
+                std::cout << "Authorization successful!" << std::endl;
+                set_state(S_OPEN);
+            }
+            else
+            {
+                std::cout << "Authorization failed!" << std::endl;
+                set_state(S_ERROR);
+            }
+        }
+    }
+
+    return state;
 }
 
 State Automata::s_open()
 {
+    // Poll for messages
+    PollResults results = postman->poll_for_messages();
+
+    for (auto &res : results)
+    {
+        if (res.type == PollResultType::USER)
+        {
+            if (res.message.type == MessageType::MSG)
+            {
+                // Send the message
+                postman->message(display_name, res.message.contents);
+                std::cout << "Message sent!" << std::endl;
+            }
+        }
+
+        // TODO: continue here
+    }
+
     return state;
 }
 
