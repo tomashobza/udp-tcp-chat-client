@@ -107,7 +107,7 @@ State Automata::s_start()
             }
             else
             {
-                set_state(S_ERROR);
+                std::cerr << "Invalid message type!" << std::endl;
             }
         }
     }
