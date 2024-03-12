@@ -371,15 +371,13 @@ Message UDPPostman::receive()
         {
             for (auto it = confirm_waiters.begin(); it != confirm_waiters.end(); it++)
             {
-
+                // Check if the message is the one being waited for
                 if (it->id == msg.ref_id)
                 {
                     if ((MessageType)(it->data.at(0)) == MessageType::AUTH)
                     {
-                        std::clog << "moving to port: " << ntohs(new_server_address.sa_data[0]) << std::endl;
-                        std::clog << this->server_address.sin_port << std::endl;
-                        std::clog << new_server_address.sa_data[0] << std::endl;
-                        // this->server_address.sin_port = new_server_address.sa_data[0];
+                        sockaddr_in *sender_addr = reinterpret_cast<sockaddr_in *>(&new_server_address);
+                        this->server_address.sin_port = sender_addr->sin_port;
                     }
                     confirm_waiters.erase(it);
                     std::clog << "CONFIRMED " << msg.ref_id << std::endl;
