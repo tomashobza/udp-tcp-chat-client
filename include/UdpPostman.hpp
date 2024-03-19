@@ -3,10 +3,21 @@
 class UDPPostman : public IPostman
 {
 private:
+    /** List of messages waiting for confirmation */
     std::list<ConfirmWaiter> confirm_waiters;
-    std::chrono::time_point<std::chrono::system_clock> timestamp;
+    /** Time of the last confirm_waiters check */
+    long long timestamp;
+    /** First message flag */
+    bool first_message = true;
 
 public:
+    /**
+     * @brief Handle the SIGINT signal.
+     *
+     * @param signal - the signal number
+     */
+    static void handle_sigint(int signal);
+
     UDPPostman(Args args);
     ~UDPPostman();
 
@@ -23,8 +34,9 @@ public:
 
     Message receive() override;
 
+    void allow_client_commands(std::vector<CommandType> messages) override;
+
     Message data_to_message(std::vector<uint8_t> data);
 
     void check_waiters();
-    int check_time();
 };

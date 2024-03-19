@@ -4,6 +4,7 @@
 #include <iostream>
 #include <cstring>
 #include <netdb.h>
+#include <csignal>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <stdexcept>
@@ -17,6 +18,9 @@
 #include "types.hpp"
 #include "constants.hpp"
 #include "InputParser.hpp"
+#include "Utils.hpp"
+
+extern bool had_sigint;
 
 class IPostman
 {
@@ -28,11 +32,19 @@ protected:
     /** The ID of the next message to be sent. */
     uint16_t msg_id = 0;
     /** The ID of the last message received. */
-    uint16_t ref_msg_id = 0;
+    int16_t ref_msg_id = 0;
     /** The timestamp of the last time check. */
-    std::chrono::time_point<std::chrono::system_clock> timestamp;
+    long long timestamp = std::chrono::system_clock::now().time_since_epoch().count();
     /** Display name */
     std::string display_name;
+    /** List of allowed server messages */
+    std::vector<MessageType> allowed_server_messages = {};
+    /** List of allowed client commands */
+    std::vector<CommandType> allowed_client_commands = {CommandType::CMD_HELP};
+    /** Last sent message */
+    Message last_sent_message;
+    /** Is user input allowed flag */
+    bool is_waiting_for_reply = false;
 
 public:
     /**
@@ -116,6 +128,9 @@ public:
     virtual PollResults poll_for_messages() = 0;
 
     virtual Message receive() = 0;
+
+    // TODO: add comments
+    virtual void allow_client_commands(std::vector<CommandType> messages) = 0;
 };
 
 #endif // POSTMAN_H
