@@ -37,6 +37,7 @@ class MessageType:
 
 
 def udp_server():
+    ref_msg_id = 0
     msg_id = 0
     UDPserverPort = 4567
     UDPserverSocket = socket(AF_INET, SOCK_DGRAM)
@@ -61,17 +62,24 @@ def udp_server():
             "magenta",
         )
 
+        inc_msg_id = message[1] << 8 | message[2]
+
         # AUTH state
         if message_type == MessageType.AUTH:
-            time.sleep(2)
+            reply = 0
+            if message[3:] == b"a\x00a\x00a\x00":
+                reply = 1
 
             UDPserverSocket.sendto(
-                bytes([MessageType.REPLY, 0, msg_id, 1, message[1], message[2]])
+                bytes([MessageType.REPLY, 0, msg_id, reply, message[1], message[2]])
                 + b"cecky",
                 clientAddress,
             )
-            msg_id += 1
-            cprint(f"UDP: Sent REPLY to {clientAddress}", "yellow")
+            msg_id += 1 if ref_msg_id < inc_msg_id else 0
+            cprint(
+                f"UDP: Sent REPLY {str(bytes([MessageType.REPLY, 0, msg_id, reply, message[1], message[2]]))} to {clientAddress}",
+                "yellow",
+            )
         elif message_type == MessageType.JOIN:
             time.sleep(2)
 
@@ -80,8 +88,11 @@ def udp_server():
                 + b"cecky",
                 clientAddress,
             )
-            msg_id += 1
+            msg_id += 1 if ref_msg_id < inc_msg_id else 0
             cprint(f"UDP: Sent REPLY to {clientAddress}", "yellow")
+
+        if message_type != MessageType.CONFIRM:
+            ref_msg_id = inc_msg_id
 
 
 def tcp_server():

@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include "constants.hpp"
+#include "Colors.hpp"
 
 enum MessageTypeEnum : uint8_t
 {
@@ -83,7 +84,7 @@ typedef struct IMessage Message;
 struct ConfirmWaiter
 {
     uint8_t tries_left;
-    int time_left;
+    long long expiration;
     MessageID id;
     std::vector<uint8_t> data;
 };
