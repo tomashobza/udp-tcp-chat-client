@@ -9,8 +9,11 @@
 class Automata
 {
 private:
+    /** The postman object */
     IPostman *postman;
+    /** The current state of the automata */
     State state = S_START;
+    /** The display name of the user */
     std::string display_name = "User";
 
 public:

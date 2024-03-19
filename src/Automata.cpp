@@ -89,25 +89,48 @@ void Automata::run()
 
 State Automata::s_start()
 {
+    // Set allowed inputs from the user
+    postman->allow_client_commands({CommandType::CMD_AUTH});
+
     // Poll for messages
     PollResults results = postman->poll_for_messages();
 
     for (auto &res : results)
     {
-        // Handle the user message (ignore server messages)
+        // Handle the user message
         if (res.type == PollResultType::USER)
         {
             // Parse the message
-            if (res.message.type == MessageType::AUTH)
+            switch (res.message.type)
             {
-                Message auth = res.message;
-                // Authorize the user
-                postman->authorize(auth.username, display_name, auth.password);
+            case MessageType::AUTH:
+                // Send the message
+                postman->authorize(res.message.username, res.message.display_name, res.message.password);
                 set_state(S_AUTH);
+                break;
+            case MessageType::BYE:
+                postman->bye();
+                set_state(S_END);
+                break;
+            default:
+                std::cerr << "Unexpected user command!" << std::endl;
+                set_state(S_ERROR);
+                break;
             }
-            else
+        }
+        // Handle the server message
+        else if (res.type == PollResultType::SERVER)
+        {
+            switch (res.message.type)
             {
-                std::cerr << "Invalid message type!" << std::endl;
+            case MessageType::ERR:
+                std::cout << "ERR FROM: " << res.message.display_name << " IS " << res.message.contents << std::endl;
+                set_state(S_ERROR);
+                break;
+            default:
+                std::cerr << "Unexpected message from server!" << std::endl;
+                set_state(S_ERROR);
+                break;
             }
         }
     }
@@ -117,25 +140,56 @@ State Automata::s_start()
 
 State Automata::s_auth()
 {
+    // Set allowed inputs from the user and server
+    postman->allow_client_commands({CommandType::CMD_AUTH});
+
     // Poll for messages
     PollResults results = postman->poll_for_messages();
 
     for (auto &res : results)
     {
-        // Handle the user message (ignore server messages)
+        if (res.type == PollResultType::USER)
+        {
+            switch (res.message.type)
+            {
+            case MessageType::AUTH:
+                // Send the message
+                postman->authorize(res.message.username, res.message.display_name, res.message.password);
+                break;
+            case MessageType::BYE:
+                postman->bye();
+                set_state(S_END);
+                break;
+            default:
+                std::cerr << "Unexpected user command!" << std::endl;
+                set_state(S_ERROR);
+                break;
+            }
+        }
         if (res.type == PollResultType::SERVER)
         {
-            std::cout << "Received server message: " << (int)res.message.type << std::endl;
-            if (res.message.type == MessageType::REPLY)
+            switch (res.message.type)
             {
-                // TODO: check id
-                std::cout << "Authorization successful!" << std::endl;
-                set_state(S_OPEN);
-            }
-            else
-            {
-                std::cout << "Authorization failed!" << std::endl;
+            case MessageType::REPLY:
+                if (res.message.type == MessageType::REPLY && res.message.result == 1)
+                {
+                    std::cerr << "Success: " << res.message.contents << std::endl;
+                    set_state(S_OPEN);
+                }
+                else
+                {
+                    std::cerr << "Failure: " << res.message.contents << std::endl;
+                }
+                break;
+            case MessageType::ERR:
+                std::cerr << "ERR FROM: " << res.message.display_name << " IS " << res.message.contents << std::endl;
+                postman->bye();
+                set_state(S_END);
+                break;
+            default:
+                std::cerr << "Unexpected message from server!" << std::endl;
                 set_state(S_ERROR);
+                break;
             }
         }
     }
@@ -145,6 +199,9 @@ State Automata::s_auth()
 
 State Automata::s_open()
 {
+    // Set allowed inputs from the user and server
+    postman->allow_client_commands({CommandType::CMD_MSG, CommandType::CMD_JOIN});
+
     // Poll for messages
     PollResults results = postman->poll_for_messages();
 
@@ -152,10 +209,27 @@ State Automata::s_open()
     {
         if (res.type == PollResultType::USER)
         {
-            if (res.message.type == MessageType::MSG)
+            switch (res.message.type)
             {
+            case MessageType::JOIN:
                 // Send the message
-                postman->message(display_name, res.message.contents);
+                postman->join(res.message.channel_id, res.message.display_name);
+                break;
+
+            case MessageType::MSG:
+                // Send the message
+                postman->message(res.message.display_name, res.message.contents);
+                break;
+
+            case MessageType::BYE:
+                postman->bye();
+                set_state(S_END);
+                break;
+
+            default:
+                std::cerr << "Unexpected user command!" << std::endl;
+                set_state(S_ERROR);
+                break;
             }
         }
 
