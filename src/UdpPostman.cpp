@@ -502,9 +502,21 @@ Message UDPPostman::receive()
     }
     else if (msg.type == MessageType::REPLY)
     {
-        // If the message is a reply, update the waiting flag
-        is_waiting_for_reply = false;
-        std::cout << FBLU("Got reply!") << std::endl;
+        if (msg.ref_id == last_sent_message.id)
+        {
+            // If the message is a reply, update the waiting flag
+            is_waiting_for_reply = false;
+            std::cout << FBLU("Got reply!") << std::endl;
+        }
+        else
+        {
+            std::cerr << "ERR: Wrong reply RefID!" << std::endl;
+
+            delete buffer; // Important to avoid memory leaks
+            Message unknown;
+            unknown.type = MessageType::UNKNOWN;
+            return unknown;
+        }
     }
 
     return msg;

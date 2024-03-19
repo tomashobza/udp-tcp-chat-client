@@ -113,7 +113,7 @@ State Automata::s_start()
                 set_state(S_END);
                 break;
             default:
-                std::cerr << "Unexpected user command!" << std::endl;
+                std::cerr << "ERR: Unexpected user command!" << std::endl;
                 set_state(S_ERROR);
                 break;
             }
@@ -128,7 +128,7 @@ State Automata::s_start()
                 set_state(S_ERROR);
                 break;
             default:
-                std::cerr << "Unexpected message from server!" << std::endl;
+                std::cerr << "ERR: Unexpected message from server!" << std::endl;
                 set_state(S_ERROR);
                 break;
             }
@@ -161,7 +161,7 @@ State Automata::s_auth()
                 set_state(S_END);
                 break;
             default:
-                std::cerr << "Unexpected user command!" << std::endl;
+                std::cerr << "ERR: Unexpected user command!" << std::endl;
                 set_state(S_ERROR);
                 break;
             }
@@ -187,7 +187,7 @@ State Automata::s_auth()
                 set_state(S_END);
                 break;
             default:
-                std::cerr << "Unexpected message from server!" << std::endl;
+                std::cerr << "ERR: Unexpected message from server!" << std::endl;
                 set_state(S_ERROR);
                 break;
             }
@@ -232,8 +232,38 @@ State Automata::s_open()
                 break;
             }
         }
-
-        // TODO: continue here
+        else if (res.type == PollResultType::SERVER)
+        {
+            switch (res.message.type)
+            {
+            case MessageType::REPLY:
+                if (res.message.type == MessageType::REPLY && res.message.result == 1)
+                {
+                    std::cerr << "Success: " << res.message.contents << std::endl;
+                }
+                else
+                {
+                    std::cerr << "Failure: " << res.message.contents << std::endl;
+                }
+                break;
+            case MessageType::MSG:
+                std::cout << res.message.display_name << ": " << res.message.contents << std::endl;
+                break;
+            case MessageType::ERR:
+                std::cerr << "ERR FROM: " << res.message.display_name << " IS " << res.message.contents << std::endl;
+                postman->bye();
+                set_state(S_END);
+                break;
+            case MessageType::BYE:
+                set_state(S_END);
+                break;
+            default:
+                std::cerr << "ERR: Unexpected message from server!" << std::endl;
+                postman->error(display_name, "Unexpected message from server!");
+                set_state(S_ERROR);
+                break;
+            }
+        }
     }
 
     return state;
@@ -241,6 +271,46 @@ State Automata::s_open()
 
 State Automata::s_error()
 {
+    // Set allowed inputs from the user and server
+    postman->allow_client_commands({});
+
+    // Poll for messages
+    PollResults results = postman->poll_for_messages();
+
+    for (auto &res : results)
+    {
+        if (res.type == PollResultType::USER)
+        {
+            switch (res.message.type)
+            {
+            case MessageType::BYE:
+                postman->bye();
+                set_state(S_END);
+                break;
+            default:
+                std::cerr << "ERR: Unexpected user command!" << std::endl;
+                set_state(S_ERROR);
+                break;
+            }
+        }
+        else if (res.type == PollResultType::SERVER)
+        {
+            switch (res.message.type)
+            {
+            case MessageType::ERR:
+                std::cerr << "ERR FROM: " << res.message.display_name << " IS " << res.message.contents << std::endl;
+                postman->bye();
+                set_state(S_END);
+                break;
+            default:
+                std::cerr << "ERR: Unexpected message from server!" << std::endl;
+                postman->error(display_name, "Unexpected message from server!");
+                set_state(S_ERROR);
+                break;
+            }
+        }
+    }
+
     return state;
 }
 

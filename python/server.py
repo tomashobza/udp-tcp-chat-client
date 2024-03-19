@@ -66,8 +66,13 @@ def udp_server():
 
         # AUTH state
         if message_type == MessageType.AUTH:
+            time.sleep(1)
+
             reply = 0
-            if message[3:] == b"a\x00a\x00a\x00":
+            if (
+                message[3:] == b"a\x00a\x00a\x00"
+                or message[3:] == b"aa\x00aa\x00aa\x00"
+            ):
                 reply = 1
 
             UDPserverSocket.sendto(
@@ -81,7 +86,7 @@ def udp_server():
                 "yellow",
             )
         elif message_type == MessageType.JOIN:
-            time.sleep(2)
+            time.sleep(1)
 
             UDPserverSocket.sendto(
                 bytes([MessageType.REPLY, 0, msg_id, 1, message[1], message[2]])
