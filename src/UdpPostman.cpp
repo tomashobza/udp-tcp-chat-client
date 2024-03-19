@@ -145,8 +145,6 @@ int UDPPostman::message(const std::string &display_name, const std::string &mess
     data[0] = MessageType::MSG;
     data[1] = (uint8_t)msg_id >> 8;
     data[2] = (uint8_t)msg_id & 0xFF;
-    std::cout << "delka jmena: " << display_name.size() << std::endl;
-    std::cout << "delka zpravy: " << message_contents.size() << std::endl;
     std::memcpy(&data[BEG_OFFSET], display_name.c_str(), display_name.size());
     std::memcpy(&data[BEG_OFFSET + display_name.size() + STR_OFFSET], message_contents.c_str(), message_contents.size());
 
@@ -347,6 +345,18 @@ PollResults UDPPostman::poll_for_messages()
 
     bool no_confirm_waiters = confirm_waiters.empty();
 
+    // Check if stdin is closed
+    if (!is_waiting_for_reply && Utils::is_stdin_closed())
+    {
+        // Send the BYE message
+        PollResult res;
+        res.type = PollResultType::USER;
+        res.message.type = MessageType::BYE;
+        res.message.id = msg_id;
+        msg_id++;
+        results.push_back(res);
+        return results;
+    }
     // If stdin has data and there are no messages to be confirmed and the client is not waiting for a reply
     else if (fds[0].revents & POLLIN && no_confirm_waiters && !is_waiting_for_reply)
     {
