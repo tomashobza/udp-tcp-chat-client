@@ -51,17 +51,17 @@ void UDPPostman::attach_to_server(const std::string &server_hostname, uint16_t p
 
 int UDPPostman::authorize(const std::string &username, const std::string &display_name, const std::string &password)
 {
-    // get the message data length
-    size_t data_len = BEG_OFFSET + username.length() + STR_OFFSET + display_name.length() + STR_OFFSET + password.length() + STR_OFFSET;
+    // get the message data size
+    size_t data_len = BEG_OFFSET + username.size() + STR_OFFSET + display_name.size() + STR_OFFSET + password.size() + STR_OFFSET;
 
     // create the message data buffer
     std::vector<uint8_t> data(data_len);
     data[0] = MessageType::AUTH;
     data[1] = (uint8_t)msg_id >> 8;
     data[2] = (uint8_t)msg_id & 0xFF;
-    std::memcpy(&data[BEG_OFFSET], username.c_str(), username.length());
-    std::memcpy(&data[BEG_OFFSET + username.length() + STR_OFFSET], display_name.c_str(), display_name.length());
-    std::memcpy(&data[BEG_OFFSET + username.length() + STR_OFFSET + display_name.length() + STR_OFFSET], password.c_str(), password.length());
+    std::memcpy(&data[BEG_OFFSET], username.c_str(), username.size());
+    std::memcpy(&data[BEG_OFFSET + username.size() + STR_OFFSET], display_name.c_str(), display_name.size());
+    std::memcpy(&data[BEG_OFFSET + username.size() + STR_OFFSET + display_name.size() + STR_OFFSET], password.c_str(), password.size());
 
     // send the message
     ssize_t n = sendto(client_socket, data.data(), data_len, 0,
@@ -88,22 +88,23 @@ int UDPPostman::authorize(const std::string &username, const std::string &displa
 
     // Disable user input after joining a channel until a reply is received
     is_waiting_for_reply = true;
+    std::cout << FBLU("Waiting for reply...") << std::endl;
 
     return 0;
 }
 
 int UDPPostman::join(const std::string &channel_id, const std::string &display_name)
 {
-    // get the message data length
-    size_t data_len = BEG_OFFSET + channel_id.length() + STR_OFFSET + display_name.length();
+    // get the message data size
+    size_t data_len = BEG_OFFSET + channel_id.size() + STR_OFFSET + display_name.size();
 
     // create the message data buffer
     std::vector<uint8_t> data(data_len);
     data[0] = MessageType::JOIN;
     data[1] = (uint8_t)msg_id >> 8;
     data[2] = (uint8_t)msg_id & 0xFF;
-    std::memcpy(&data[BEG_OFFSET], channel_id.c_str(), channel_id.length());
-    std::memcpy(&data[BEG_OFFSET + channel_id.length() + STR_OFFSET], display_name.c_str(), display_name.length());
+    std::memcpy(&data[BEG_OFFSET], channel_id.c_str(), channel_id.size());
+    std::memcpy(&data[BEG_OFFSET + channel_id.size() + STR_OFFSET], display_name.c_str(), display_name.size());
 
     // send the message
     ssize_t n = sendto(client_socket, data.data(), data_len, 0,
@@ -129,25 +130,25 @@ int UDPPostman::join(const std::string &channel_id, const std::string &display_n
 
     // Disable user input after joining a channel until a reply is received
     is_waiting_for_reply = true;
+    std::cout << FBLU("Waiting for reply...") << std::endl;
 
     return 0;
 }
 
 int UDPPostman::message(const std::string &display_name, const std::string &message_contents)
 {
-    // get the message data length
-    size_t data_len = BEG_OFFSET + display_name.length() + STR_OFFSET + message_contents.length();
+    // get the message data size
+    size_t data_len = BEG_OFFSET + display_name.size() + STR_OFFSET + message_contents.size();
 
     // create the message data buffer
     std::vector<uint8_t> data(data_len);
     data[0] = MessageType::MSG;
     data[1] = (uint8_t)msg_id >> 8;
     data[2] = (uint8_t)msg_id & 0xFF;
-    std::memcpy(&data[BEG_OFFSET], display_name.c_str(), display_name.length());
-    std::memcpy(&data[BEG_OFFSET + display_name.length() + STR_OFFSET], message_contents.c_str(), message_contents.length());
-
-    std::clog << "vyhul: " << (int)data[1] << std::endl;
-    std::clog << "mipenis: " << (int)data[2] << std::endl;
+    std::cout << "delka jmena: " << display_name.size() << std::endl;
+    std::cout << "delka zpravy: " << message_contents.size() << std::endl;
+    std::memcpy(&data[BEG_OFFSET], display_name.c_str(), display_name.size());
+    std::memcpy(&data[BEG_OFFSET + display_name.size() + STR_OFFSET], message_contents.c_str(), message_contents.size());
 
     // send the message
     ssize_t n = sendto(client_socket, data.data(), data_len, 0,
@@ -158,8 +159,6 @@ int UDPPostman::message(const std::string &display_name, const std::string &mess
     {
         throw std::runtime_error("ERROR sending MSG message");
     }
-
-    std::cout << "Message sent!" << msg_id - 1 << std::endl;
 
     // Push the message to the queue of messages to be confirmed
     confirm_waiters.push_back(ConfirmWaiter{MSG_MAX_RETRIES, Utils::get_timestamp() + MSG_TIMEOUT, (MessageID)msg_id, data});
@@ -178,16 +177,16 @@ int UDPPostman::message(const std::string &display_name, const std::string &mess
 
 int UDPPostman::error(const std::string &display_name, const std::string &message_contents)
 {
-    // get the message data length
-    size_t data_len = BEG_OFFSET + display_name.length() + STR_OFFSET + message_contents.length();
+    // get the message data size
+    size_t data_len = BEG_OFFSET + display_name.size() + STR_OFFSET + message_contents.size();
 
     // create the message data buffer
     std::vector<uint8_t> data(data_len);
     data[0] = MessageType::ERR;
     data[1] = (uint8_t)msg_id >> 8;
     data[2] = (uint8_t)msg_id & 0xFF;
-    std::memcpy(&data[BEG_OFFSET], display_name.c_str(), display_name.length());
-    std::memcpy(&data[BEG_OFFSET + display_name.length() + STR_OFFSET], message_contents.c_str(), message_contents.length());
+    std::memcpy(&data[BEG_OFFSET], display_name.c_str(), display_name.size());
+    std::memcpy(&data[BEG_OFFSET + display_name.size() + STR_OFFSET], message_contents.c_str(), message_contents.size());
 
     // send the message
     ssize_t n = sendto(client_socket, data.data(), data_len, 0,
@@ -216,7 +215,7 @@ int UDPPostman::error(const std::string &display_name, const std::string &messag
 
 int UDPPostman::bye()
 {
-    // get the message data length
+    // get the message data size
     size_t data_len = BEG_OFFSET;
 
     // create the message data buffer
@@ -252,7 +251,7 @@ int UDPPostman::confirm()
 {
     std::clog << "> CONFIRM " << ref_msg_id << std::endl;
 
-    // get the message data length
+    // get the message data size
     size_t data_len = BEG_OFFSET;
 
     // create the message data buffer
@@ -297,8 +296,8 @@ PollResults UDPPostman::poll_for_messages()
 {
     PollResults results;
 
-    // Check if stdin is closed
-    if (Utils::is_stdin_closed() || had_sigint)
+    // Check if the user has pressed Ctrl+C
+    if (had_sigint)
     {
         // Send the BYE message
         PollResult res;
@@ -349,7 +348,7 @@ PollResults UDPPostman::poll_for_messages()
     bool no_confirm_waiters = confirm_waiters.empty();
 
     // If stdin has data and there are no messages to be confirmed and the client is not waiting for a reply
-    if (fds[0].revents & POLLIN && no_confirm_waiters && !is_waiting_for_reply)
+    else if (fds[0].revents & POLLIN && no_confirm_waiters && !is_waiting_for_reply)
     {
         // Parse the input
         Command cmd = InputParser::parse_input();
@@ -495,6 +494,7 @@ Message UDPPostman::receive()
     {
         // If the message is a reply, update the waiting flag
         is_waiting_for_reply = false;
+        std::cout << FBLU("Got reply!") << std::endl;
     }
 
     return msg;
