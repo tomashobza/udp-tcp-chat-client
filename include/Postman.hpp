@@ -131,6 +131,9 @@ public:
 
     // TODO: add comments
     virtual void allow_client_commands(std::vector<CommandType> messages) = 0;
+
+    virtual PollResults handle_server_message() = 0;
+    virtual PollResults handle_user_command() = 0;
 };
 
 #endif // POSTMAN_H

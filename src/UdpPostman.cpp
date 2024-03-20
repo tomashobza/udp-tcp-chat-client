@@ -22,6 +22,24 @@ UDPPostman::UDPPostman(Args args)
         throw std::runtime_error("ERROR opening socket");
     }
 
+    // Optionally bind the client to a specific port
+    sockaddr_in client_addr;
+    memset(&client_addr, 0, sizeof(client_addr));
+    client_addr.sin_family = AF_INET;
+    client_addr.sin_addr.s_addr = htonl(INADDR_ANY); // Listen on any IP address
+    client_addr.sin_port = htons(3000);              // Specific port to bind
+
+    if (bind(client_socket, (struct sockaddr *)&client_addr, sizeof(client_addr)) < 0)
+    {
+        std::cerr << "ERROR binding to port 3000: " << std::strerror(errno) << std::endl;
+        // Decide how to handle the error; throw an exception or handle gracefully
+        throw std::runtime_error("ERROR binding to port 3000");
+    }
+    else
+    {
+        std::cout << "Client socket bound to port 3000" << std::endl;
+    }
+
     // Attach to the server
     this->attach_to_server(args.hostname, args.port);
 }
@@ -360,92 +378,122 @@ PollResults UDPPostman::poll_for_messages()
     // If stdin has data and there are no messages to be confirmed and the client is not waiting for a reply
     else if (fds[0].revents & POLLIN && no_confirm_waiters && !is_waiting_for_reply)
     {
-        // Parse the input
-        Command cmd = InputParser::parse_input();
-
-        bool is_allowed = std::find(allowed_client_commands.begin(), allowed_client_commands.end(), cmd.type) != allowed_client_commands.end();
-
-        if (!is_allowed)
+        PollResults usr_res = handle_user_command();
+        for (auto &res : usr_res)
         {
-            std::cerr << "ERR: Command not allowed in this state!" << std::endl;
-        }
-        else
-        {
-            // Execute the command or save the message to be sent
-            switch (cmd.type)
-            {
-            case CommandType::CMD_AUTH:
-            {
-                Message auth_msg;
-                auth_msg.type = MessageType::AUTH;
-                auth_msg.id = msg_id;
-                auth_msg.username = cmd.args[0];
-                auth_msg.password = cmd.args[1];
-                auth_msg.display_name = cmd.args[2];
-                results.push_back(PollResult{
-                    PollResultType::USER,
-                    auth_msg});
-
-                display_name = cmd.args[2];
-
-                break;
-            }
-            case CommandType::CMD_JOIN:
-            {
-                Message join_msg;
-                join_msg.type = MessageType::JOIN;
-                join_msg.id = msg_id;
-                join_msg.display_name = display_name;
-                join_msg.channel_id = cmd.args[0];
-
-                results.push_back(PollResult{
-                    PollResultType::USER,
-                    join_msg});
-                break;
-            }
-            case CommandType::CMD_RENAME:
-                display_name = cmd.args[0];
-                break;
-            case CommandType::CMD_MSG:
-            {
-                Message msg_msg;
-                msg_msg.type = MessageType::MSG;
-                msg_msg.id = msg_id;
-                msg_msg.display_name = display_name;
-                msg_msg.contents = cmd.args[0];
-                results.push_back(PollResult{
-                    PollResultType::USER,
-                    msg_msg});
-                break;
-            }
-            default:
-                break;
-            }
+            results.push_back(res);
         }
     }
 
     // If socket has data
     if (fds[1].revents & POLLIN)
     {
-        // Receive the message
-        Message msg = this->receive();
-
-        bool is_contentful = msg.type != MessageType::UNKNOWN && msg.type != MessageType::CONFIRM;
-        bool is_first = first_message;
-        bool is_new = (msg.id > ref_msg_id || is_first);
-
-        // TODO: handle incorrect reply ref msg id
-
-        // Add the message to the results if it is not a confirmation or an unknown message
-        if (is_contentful && is_new)
+        PollResults srvr_res = handle_server_message();
+        for (auto &res : srvr_res)
         {
-            results.push_back(PollResult{
-                PollResultType::SERVER,
-                msg});
-
-            ref_msg_id = msg.id;
-            first_message = false;
+            results.push_back(res);
         }
+    }
+
+    return results;
+}
+
+PollResults UDPPostman::handle_user_command()
+{
+    PollResults results;
+
+    // Parse the input
+    Command cmd = InputParser::parse_input();
+
+    bool is_allowed = std::find(allowed_client_commands.begin(), allowed_client_commands.end(), cmd.type) != allowed_client_commands.end();
+
+    if (!is_allowed)
+    {
+        std::cerr << "ERR: Command not allowed in this state!" << std::endl;
+    }
+    else
+    {
+        // Execute the command or save the message to be sent
+        switch (cmd.type)
+        {
+        case CommandType::CMD_AUTH:
+        {
+            Message auth_msg;
+            auth_msg.type = MessageType::AUTH;
+            auth_msg.id = msg_id;
+            auth_msg.username = cmd.args[0];
+            auth_msg.password = cmd.args[1];
+            auth_msg.display_name = cmd.args[2];
+            results.push_back(PollResult{
+                PollResultType::USER,
+                auth_msg});
+
+            display_name = cmd.args[2];
+
+            break;
+        }
+        case CommandType::CMD_JOIN:
+        {
+            Message join_msg;
+            join_msg.type = MessageType::JOIN;
+            join_msg.id = msg_id;
+            join_msg.display_name = display_name;
+            join_msg.channel_id = cmd.args[0];
+
+            results.push_back(PollResult{
+                PollResultType::USER,
+                join_msg});
+            break;
+        }
+        case CommandType::CMD_RENAME:
+            display_name = cmd.args[0];
+            break;
+        case CommandType::CMD_MSG:
+        {
+            Message msg_msg;
+            msg_msg.type = MessageType::MSG;
+            msg_msg.id = msg_id;
+            msg_msg.display_name = display_name;
+            msg_msg.contents = cmd.args[0];
+            results.push_back(PollResult{
+                PollResultType::USER,
+                msg_msg});
+            break;
+        }
+        default:
+            break;
+        }
+    }
+
+    return results;
+}
+
+PollResults UDPPostman::handle_server_message()
+{
+    PollResults results;
+
+    // Receive the message
+    Message msg = this->receive();
+
+    // Confirm messages will not be forwarded to the FSM as they are not contentful
+    bool is_contentful = msg.type != MessageType::CONFIRM;
+    // Unknown messages will get forwarded to the FSM to handle
+    bool is_unknown = msg.type == MessageType::UNKNOWN;
+    //
+    bool is_first = first_message;
+    bool is_new = (msg.id > ref_msg_id || is_first);
+
+    // TODO: handle incorrect reply ref msg id
+
+    // Add the message to the results if it is not a confirmation or an unknown message
+    if ((is_contentful && is_new) || is_unknown)
+    {
+        results.push_back(PollResult{
+            PollResultType::SERVER,
+            msg});
+
+        ref_msg_id = msg.id;
+        first_message = false;
     }
 
     return results;
@@ -488,11 +536,6 @@ Message UDPPostman::receive()
                 // Check if the message is the one being waited for
                 if (it->id == msg.ref_id)
                 {
-                    if ((MessageType)(it->data.at(0)) == MessageType::AUTH)
-                    {
-                        sockaddr_in *sender_addr = reinterpret_cast<sockaddr_in *>(&new_server_address);
-                        this->server_address.sin_port = sender_addr->sin_port;
-                    }
                     confirm_waiters.erase(it);
                     std::clog << FGRN("CONFIRMED ") << msg.ref_id << std::endl;
                     break;
@@ -502,9 +545,17 @@ Message UDPPostman::receive()
     }
     else if (msg.type == MessageType::REPLY)
     {
+        // Check reference ID of a REPLY message
         if (msg.ref_id == last_sent_message.id)
         {
-            // If the message is a reply, update the waiting flag
+            // Change the port of the recipient
+            if (last_sent_message.type == MessageType::AUTH)
+            {
+                sockaddr_in *sender_addr = reinterpret_cast<sockaddr_in *>(&new_server_address);
+                this->server_address.sin_port = sender_addr->sin_port;
+            }
+
+            // Update the waiting flag
             is_waiting_for_reply = false;
             std::cout << FBLU("Got reply!") << std::endl;
         }

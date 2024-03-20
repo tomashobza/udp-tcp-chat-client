@@ -36,6 +36,9 @@ public:
 
     void allow_client_commands(std::vector<CommandType> messages) override;
 
+    PollResults handle_server_message() override;
+    PollResults handle_user_command() override;
+
     Message data_to_message(std::vector<uint8_t> data);
 
     void check_waiters();
