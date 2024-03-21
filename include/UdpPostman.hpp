@@ -28,6 +28,7 @@ public:
     int error(const std::string &display_name, const std::string &message_contents) override;
     int bye() override;
     int confirm() override;
+    int confirm(MessageID ref_id);
     int get_client_socket() override;
     struct sockaddr_in get_server_address() override;
     PollResults poll_for_messages() override;
@@ -41,5 +42,5 @@ public:
 
     Message data_to_message(std::vector<uint8_t> data);
 
-    void check_waiters();
+    bool check_waiters();
 };

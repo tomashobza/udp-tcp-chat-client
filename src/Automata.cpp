@@ -57,6 +57,7 @@ void Automata::rename(const std::string &new_display_name)
 
 void Automata::run()
 {
+
     // Run the automata
     while (1)
     {

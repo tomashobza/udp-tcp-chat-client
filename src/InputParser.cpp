@@ -29,7 +29,7 @@ Command InputParser::parse_input()
         // Check if the number of arguments is correct
         if (args.size() != 3)
         {
-            std::cerr << "ERROR: wrong number of arguments" << std::endl;
+            std::cerr << "ERR: wrong number of arguments" << std::endl;
             goto help;
         }
         else
@@ -42,7 +42,7 @@ Command InputParser::parse_input()
         // Check if the number of arguments is correct
         if (args.size() != 1)
         {
-            std::cerr << "ERROR: wrong number of arguments" << std::endl;
+            std::cerr << "ERR: wrong number of arguments" << std::endl;
             goto help;
         }
         else
@@ -55,7 +55,7 @@ Command InputParser::parse_input()
         // Check if the number of arguments is correct
         if (args.size() != 1)
         {
-            std::cerr << "ERROR: wrong number of arguments" << std::endl;
+            std::cerr << "ERR: wrong number of arguments" << std::endl;
             goto help;
         }
         else

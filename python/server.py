@@ -95,12 +95,12 @@ def udp_server():
             )
             msg_id += 1 if ref_msg_id < inc_msg_id else 0
             cprint(f"UDP: Sent REPLY to {clientAddress}", "yellow")
-        # elif message_type == MessageType.MSG:
-        #     time.sleep(1)
+        elif message_type == MessageType.MSG:
+            time.sleep(1)
 
-        #     UDPserverSocket.sendto(bytes([6, 2, 3, 4, 5, 6]), clientAddress)
-        #     msg_id += 1 if ref_msg_id < inc_msg_id else 0
-        #     cprint(f"UDP: Sent message to {clientAddress}", "yellow")
+            UDPserverSocket.sendto(bytes([6, 2, 3, 4, 5, 6]), clientAddress)
+            msg_id += 1 if ref_msg_id < inc_msg_id else 0
+            cprint(f"UDP: Sent message to {clientAddress}", "yellow")
 
         if message_type != MessageType.CONFIRM:
             ref_msg_id = inc_msg_id

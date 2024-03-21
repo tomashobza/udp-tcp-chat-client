@@ -273,7 +273,8 @@ int UDPPostman::confirm()
     // create the message data buffer
     std::vector<uint8_t> data(data_len);
     data[0] = MessageType::CONFIRM;
-    std::memcpy(&data[1], &ref_msg_id, sizeof(MessageID));
+    data[1] = (uint8_t)ref_msg_id >> 8;
+    data[2] = (uint8_t)ref_msg_id & 0xFF;
 
     // send the message
     ssize_t n = sendto(client_socket, data.data(), data_len, 0,
@@ -282,18 +283,48 @@ int UDPPostman::confirm()
     // check for errors
     if (n < 0)
     {
-        throw std::runtime_error("ERROR sending BYE message");
+        throw std::runtime_error("ERROR sending CONFIRM message");
     }
 
-    // Push the message to the queue of messages to be confirmed
-    confirm_waiters.push_back(ConfirmWaiter{MSG_MAX_RETRIES, Utils::get_timestamp() + MSG_TIMEOUT, (MessageID)msg_id, data});
+    // // Push the message to the queue of messages to be confirmed
+    // confirm_waiters.push_back(ConfirmWaiter{MSG_MAX_RETRIES, Utils::get_timestamp() + MSG_TIMEOUT, (MessageID)msg_id, data});
 
-    last_sent_message = Message{};
-    last_sent_message.type = MessageType::CONFIRM;
-    last_sent_message.ref_id = ref_msg_id;
+    // last_sent_message = Message{};
+    // last_sent_message.type = MessageType::CONFIRM;
+    // last_sent_message.ref_id = ref_msg_id;
 
-    // increment the message ID
-    msg_id++;
+    return 0;
+}
+
+int UDPPostman::confirm(MessageID ref_id)
+{
+    std::clog << "> CONFIRM " << ref_id << std::endl;
+
+    // get the message data size
+    size_t data_len = BEG_OFFSET;
+
+    // create the message data buffer
+    std::vector<uint8_t> data(data_len);
+    data[0] = MessageType::CONFIRM;
+    data[1] = (uint8_t)msg_id >> 8;
+    data[2] = (uint8_t)msg_id & 0xFF;
+
+    // send the message
+    ssize_t n = sendto(client_socket, data.data(), data_len, 0,
+                       (struct sockaddr *)&server_address, sizeof(server_address));
+
+    // check for errors
+    if (n < 0)
+    {
+        throw std::runtime_error("ERROR sending CONFIRM message");
+    }
+
+    // // Push the message to the queue of messages to be confirmed
+    // confirm_waiters.push_back(ConfirmWaiter{MSG_MAX_RETRIES, Utils::get_timestamp() + MSG_TIMEOUT, (MessageID)msg_id, data});
+
+    // last_sent_message = Message{};
+    // last_sent_message.type = MessageType::CONFIRM;
+    // last_sent_message.ref_id = ref_id;
 
     return 0;
 }
@@ -315,6 +346,7 @@ PollResults UDPPostman::poll_for_messages()
     // Check if the user has pressed Ctrl+C
     if (had_sigint)
     {
+        is_waiting_for_reply = false;
         // Send the BYE message
         PollResult res;
         res.type = PollResultType::USER;
@@ -326,7 +358,17 @@ PollResults UDPPostman::poll_for_messages()
     }
 
     // Check if there are any messages to be confirmed
-    this->check_waiters();
+    if (!this->check_waiters())
+    {
+        is_waiting_for_reply = false;
+        PollResult res;
+        res.type = PollResultType::USER;
+        res.message.type = MessageType::ERR;
+        res.message.display_name = display_name;
+        res.message.contents = "Message not confirmed";
+        results.push_back(res);
+        return results;
+    }
 
     // Set up poll to listen on stdin and the socket
     struct pollfd fds[2];
@@ -344,6 +386,7 @@ PollResults UDPPostman::poll_for_messages()
         // An error occurred, check if it was due to a SIGINT signal
         if (had_sigint)
         {
+            is_waiting_for_reply = false;
             PollResult res;
             res.type = PollResultType::USER;
             res.message.type = MessageType::BYE;
@@ -359,13 +402,24 @@ PollResults UDPPostman::poll_for_messages()
     }
 
     // Check if there are any messages to be confirmed
-    this->check_waiters();
+    if (!this->check_waiters())
+    {
+        is_waiting_for_reply = false;
+        PollResult res;
+        res.type = PollResultType::USER;
+        res.message.type = MessageType::ERR;
+        res.message.display_name = display_name;
+        res.message.contents = "Message not confirmed";
+        results.push_back(res);
+        return results;
+    }
 
     bool no_confirm_waiters = confirm_waiters.empty();
 
     // Check if stdin is closed
     if (!is_waiting_for_reply && Utils::is_stdin_closed())
     {
+        is_waiting_for_reply = false;
         // Send the BYE message
         PollResult res;
         res.type = PollResultType::USER;
@@ -484,6 +538,11 @@ PollResults UDPPostman::handle_server_message()
     bool is_new = (msg.id > ref_msg_id || is_first);
 
     // TODO: handle incorrect reply ref msg id
+
+    if (is_contentful && !is_unknown)
+    {
+        confirm(msg.id);
+    }
 
     // Add the message to the results if it is not a confirmation or an unknown message
     if ((is_contentful && is_new) || is_unknown)
@@ -728,11 +787,11 @@ Message UDPPostman::data_to_message(std::vector<uint8_t> data)
     return unknown;
 }
 
-void UDPPostman::check_waiters()
+bool UDPPostman::check_waiters()
 {
     if (confirm_waiters.empty())
     {
-        return;
+        return true;
     }
 
     // Check if any of the confirm_waiters have timed out
@@ -754,7 +813,7 @@ void UDPPostman::check_waiters()
                 // Check for errors
                 if (n < 0)
                 {
-                    throw std::runtime_error("ERROR sending message");
+                    throw std::runtime_error("ERR: sending message");
                 }
 
                 // Reset the timer and decrement the number of tries
@@ -765,8 +824,10 @@ void UDPPostman::check_waiters()
             {
                 // If the waiter has no more tries left, remove it from the queue
                 confirm_waiters.erase(it);
-                std::cerr << "ERROR: message not confirmed" << std::endl;
+                return false;
             }
         }
     }
+
+    return true;
 }
