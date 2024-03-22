@@ -416,22 +416,31 @@ PollResults UDPPostman::poll_for_messages()
 
     bool no_confirm_waiters = confirm_waiters.empty();
 
-    // Check if stdin is closed
-    if (!is_waiting_for_reply && Utils::is_stdin_closed())
-    {
-        is_waiting_for_reply = false;
-        // Send the BYE message
-        PollResult res;
-        res.type = PollResultType::USER;
-        res.message.type = MessageType::BYE;
-        res.message.id = msg_id;
-        msg_id++;
-        results.push_back(res);
-        return results;
-    }
     // If stdin has data and there are no messages to be confirmed and the client is not waiting for a reply
-    else if (fds[0].revents & POLLIN && no_confirm_waiters && !is_waiting_for_reply)
+    if (fds[0].revents & POLLIN && no_confirm_waiters && !is_waiting_for_reply)
     {
+        // Check if stdin is closed
+        char c;
+        // Try reading one byte from stdin to check if it is closed
+        ssize_t bytesRead = read(0, &c, 1);
+        if (bytesRead <= 0)
+        {
+            std::cout << "EOF" << std::endl;
+            is_waiting_for_reply = false;
+            // Send the BYE message
+            PollResult res;
+            res.type = PollResultType::USER;
+            res.message.type = MessageType::BYE;
+            res.message.id = msg_id;
+            msg_id++;
+            results.push_back(res);
+            return results;
+        }
+        else
+        {
+            ungetc(c, stdin);
+        }
+
         PollResults usr_res = handle_user_command();
         for (auto &res : usr_res)
         {
