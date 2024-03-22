@@ -39,6 +39,7 @@ class MessageType:
 def udp_server():
     ref_msg_id = 0
     msg_id = 0
+    first_message = True
     UDPserverPort = 4567
     UDPserverSocket = socket(AF_INET, SOCK_DGRAM)
     UDPserverSocket.bind(("", UDPserverPort))
@@ -47,22 +48,23 @@ def udp_server():
     threadik = None
 
     while True:
+        print()
         message, clientAddress = UDPserverSocket.recvfrom(2048)
         message_type = message[0]
+        inc_msg_id = message[1] << 8 | message[2]
         cprint(f"UDP: Received message: {message} from {clientAddress}", "cyan")
 
         print(f"Message type: {MessageType(message_type)}")
 
-        # confirm message
-        UDPserverSocket.sendto(
-            bytes([MessageType.CONFIRM, message[1], message[2]]), clientAddress
-        )
-        cprint(
-            f"UDP: Sent CONFIRM {bytes([MessageType.CONFIRM, message[1], message[2]])} to {clientAddress}",
-            "magenta",
-        )
-
-        inc_msg_id = message[1] << 8 | message[2]
+        if message_type != MessageType.CONFIRM:
+            # confirm message
+            UDPserverSocket.sendto(
+                bytes([MessageType.CONFIRM, message[1], message[2]]), clientAddress
+            )
+            cprint(
+                f"UDP: Sent CONFIRM {bytes([MessageType.CONFIRM, message[1], message[2]])} to {clientAddress}",
+                "magenta",
+            )
 
         # AUTH state
         if message_type == MessageType.AUTH:
@@ -80,11 +82,24 @@ def udp_server():
                 + b"cecky",
                 clientAddress,
             )
-            msg_id += 1 if ref_msg_id < inc_msg_id else 0
             cprint(
                 f"UDP: Sent REPLY {str(bytes([MessageType.REPLY, 0, msg_id, reply, message[1], message[2]]))} to {clientAddress}",
                 "yellow",
             )
+            print("MSG ID:", msg_id)
+            print("REF MSG ID:", ref_msg_id)
+            print("INC MSG ID:", inc_msg_id)
+            msg_id += 1 if ref_msg_id < inc_msg_id or first_message else 0
+            first_message = False
+
+            # time.sleep(2)
+
+            # UDPserverSocket.sendto(
+            #     bytes([MessageType.MSG, 0, 1]) + b"ahoj\0" + b"vole\0", clientAddress
+            # )
+            # msg_id += 1 if ref_msg_id < inc_msg_id or first_message else 0
+            # first_message = False
+            # cprint(f"UDP: Sent message to {clientAddress}", "yellow")
         elif message_type == MessageType.JOIN:
             time.sleep(1)
 
@@ -93,14 +108,16 @@ def udp_server():
                 + b"cecky",
                 clientAddress,
             )
-            msg_id += 1 if ref_msg_id < inc_msg_id else 0
+            msg_id += 1 if ref_msg_id < inc_msg_id or first_message else 0
+            first_message = False
             cprint(f"UDP: Sent REPLY to {clientAddress}", "yellow")
-        elif message_type == MessageType.MSG:
-            time.sleep(1)
+        # elif message_type == MessageType.MSG:
+        #     time.sleep(1)
 
-            UDPserverSocket.sendto(bytes([6, 2, 3, 4, 5, 6]), clientAddress)
-            msg_id += 1 if ref_msg_id < inc_msg_id else 0
-            cprint(f"UDP: Sent message to {clientAddress}", "yellow")
+        #     UDPserverSocket.sendto(bytes([6, 2, 3, 4, 5, 6]), clientAddress)
+        #     msg_id += 1 if ref_msg_id < inc_msg_id or first_message else 0
+        #     first_message = False
+        #     cprint(f"UDP: Sent message to {clientAddress}", "yellow")
 
         if message_type != MessageType.CONFIRM:
             ref_msg_id = inc_msg_id
