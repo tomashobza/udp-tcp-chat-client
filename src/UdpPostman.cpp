@@ -669,19 +669,16 @@ Message UDPPostman::data_to_message(std::vector<uint8_t> data)
     {
         Message msg;
         msg.type = MessageType::CONFIRM;
-        std::memcpy(&msg.ref_id, &data.at(1), sizeof(MessageID));
-        msg.ref_id = ntohs(msg.ref_id);
+        msg.ref_id = data.at(1) << 8 | data.at(2);
         return msg;
     }
     case MessageType::REPLY:
     {
         Message msg;
         msg.type = MessageType::REPLY;
-        std::memcpy(&msg.id, &data.at(1), sizeof(MessageID));
-        msg.id = ntohs(msg.id);
+        msg.id = data.at(1) << 8 | data.at(2);
         msg.result = data.at(3);
-        std::memcpy(&msg.ref_id, &data.at(4), sizeof(MessageID));
-        msg.ref_id = ntohs(msg.ref_id);
+        msg.ref_id = data.at(4) << 8 | data.at(5);
         msg.contents = std::string(data.begin() + BEG_OFFSET + STR_OFFSET, data.end());
         return msg;
     }
@@ -690,8 +687,7 @@ Message UDPPostman::data_to_message(std::vector<uint8_t> data)
     {
         Message msg;
         msg.type = MessageType::AUTH;
-        std::memcpy(&msg.id, &data.at(1), sizeof(MessageID));
-        msg.id = ntohs(msg.id);
+        msg.id = data.at(1) << 8 | data.at(2);
         ssize_t i = BEG_OFFSET;
         while (data.at(i) != 0)
         {
@@ -717,8 +713,7 @@ Message UDPPostman::data_to_message(std::vector<uint8_t> data)
     {
         Message msg;
         msg.type = MessageType::JOIN;
-        std::memcpy(&msg.id, &data.at(1), sizeof(MessageID));
-        msg.id = ntohs(msg.id);
+        msg.id = data.at(1) << 8 | data.at(2);
         ssize_t i = BEG_OFFSET;
         while (data.at(i) != 0)
         {
@@ -738,8 +733,7 @@ Message UDPPostman::data_to_message(std::vector<uint8_t> data)
     {
         Message msg;
         msg.type = MessageType::MSG;
-        std::memcpy(&msg.id, &data.at(1), sizeof(MessageID));
-        msg.id = ntohs(msg.id);
+        msg.id = data.at(1) << 8 | data.at(2);
         ssize_t i = BEG_OFFSET;
         while (data.at(i) != 0)
         {
@@ -759,8 +753,7 @@ Message UDPPostman::data_to_message(std::vector<uint8_t> data)
     {
         Message msg;
         msg.type = MessageType::ERR;
-        std::memcpy(&msg.id, &data.at(1), sizeof(MessageID));
-        msg.id = ntohs(msg.id);
+        msg.id = data.at(1) << 8 | data.at(2);
         ssize_t i = BEG_OFFSET;
         while (data.at(i) != 0)
         {
@@ -780,8 +773,7 @@ Message UDPPostman::data_to_message(std::vector<uint8_t> data)
     {
         Message msg;
         msg.type = MessageType::BYE;
-        std::memcpy(&msg.id, &data.at(1), sizeof(MessageID));
-        msg.id = ntohs(msg.id);
+        msg.id = data.at(1) << 8 | data.at(2);
         return msg;
     }
 
