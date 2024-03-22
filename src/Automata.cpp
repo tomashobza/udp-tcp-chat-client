@@ -115,6 +115,7 @@ State Automata::s_start()
                 break;
             default:
                 std::cerr << "ERR: Unexpected user command!" << std::endl;
+                postman->error(display_name, "Unexpected user command!");
                 set_state(S_ERROR);
                 break;
             }
@@ -130,6 +131,7 @@ State Automata::s_start()
                 break;
             default:
                 std::cerr << "ERR: Unexpected message from server!" << std::endl;
+                postman->error(display_name, "Unexpected message from server!");
                 set_state(S_ERROR);
                 break;
             }
@@ -163,6 +165,7 @@ State Automata::s_auth()
                 break;
             default:
                 std::cerr << "ERR: Unexpected user command!" << std::endl;
+                postman->error(display_name, "Unexpected user command!");
                 set_state(S_ERROR);
                 break;
             }
@@ -189,6 +192,7 @@ State Automata::s_auth()
                 break;
             default:
                 std::cerr << "ERR: Unexpected message from server!" << std::endl;
+                postman->error(display_name, "Unexpected message from server!");
                 set_state(S_ERROR);
                 break;
             }
@@ -290,6 +294,7 @@ State Automata::s_error()
                 break;
             default:
                 std::cerr << "ERR: Unexpected user command!" << std::endl;
+                postman->error(display_name, "Unexpected user command!");
                 set_state(S_ERROR);
                 break;
             }
