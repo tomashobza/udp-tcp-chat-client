@@ -69,6 +69,11 @@ Command InputParser::parse_input()
     }
     else
     {
+        if (input.size() == 0)
+        {
+            std::cerr << "ERR: empty message not allowed" << std::endl;
+            goto help;
+        }
         // If the command is not recognized, assume it is a message
         return Command{CMD_MSG, {input}};
     }
