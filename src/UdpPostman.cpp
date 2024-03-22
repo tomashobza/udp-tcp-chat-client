@@ -644,7 +644,7 @@ Message UDPPostman::receive()
 void UDPPostman::allow_client_commands(std::vector<CommandType> messages)
 {
     // Help is always allowed
-    allowed_client_commands = {CommandType::CMD_HELP};
+    allowed_client_commands = {CommandType::CMD_HELP, CommandType::CMD_RENAME};
 
     // Add the allowed commands
     for (auto &msg : messages)
