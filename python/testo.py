@@ -13,7 +13,6 @@ def testcase(func):
     def wrapper(tester, *args, **kwargs):
         passed = False
 
-        tester.setup()  # Setup process and threads for new test
         print("==" * 10)
         print(colored(f"⏳ Starting test '{func.__name__}'", "yellow"))
         try:
@@ -40,9 +39,9 @@ class ExecutableTester:
         self.stdout_queue = queue.Queue()
         self.stderr_queue = queue.Queue()
 
-    def setup(self):
+    def setup(self, args=["-t", "udp", "-s", "localhost", "-p", "4567"]):
         self.process = subprocess.Popen(
-            [self.executable_path] + ["-t", "udp", "-s", "localhost", "-p", "4567"],
+            [self.executable_path] + args,
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
@@ -99,6 +98,7 @@ cprint(f"Testing command-line arguments", "white", "on_black")
 
 @testcase
 def test_hello(tester):
+    tester.setup(args=["-t", "udp", "-s", "localhost", "-p", "4567"])
     tester.execute("Hello")
     stdout = tester.get_stdout()
     stderr = tester.get_stderr()
@@ -107,6 +107,7 @@ def test_hello(tester):
 
 @testcase
 def test_hello(tester):
+    tester.setup(args=["-t", "udp", "-s", "localhost", "-p", "4567"])
     tester.execute("/auth 1 2 3")
     stdout = tester.get_stdout()
     stderr = tester.get_stderr()
