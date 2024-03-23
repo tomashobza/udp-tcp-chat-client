@@ -6,6 +6,7 @@ import math
 from os import get_terminal_size
 from termcolor import colored, cprint
 from time import sleep
+import signal
 
 # Define a global list to hold all test case functions
 test_cases = []
@@ -59,6 +60,7 @@ class ExecutableTester:
         )
         self._start_thread(self.read_stdout, self.stdout_queue)
         self._start_thread(self.read_stderr, self.stderr_queue)
+        self.return_code = None
 
         sleep(0.2)  # Give some time for the process to start
 
@@ -96,13 +98,20 @@ class ExecutableTester:
         return "".join(output)
 
     def teardown(self):
-        self.process.terminate()
-        self.process.wait()
-        self.return_code = self.process.returncode
-        self.process = None
+        if self.process:
+            self.process.terminate()
+            self.process.wait()
+            self.return_code = self.process.returncode
+            self.process = None
 
     def get_return_code(self):
         return self.return_code
+
+    def send_signal(self, signal):
+        self.process.send_signal(signal)
+
+    def send_eof(self):
+        self.process.stdin.close()
 
 
 ### TEST CASES ###
@@ -112,17 +121,39 @@ class ExecutableTester:
 
 
 @testcase
-def test_no_args(tester):
-    """Test that the program exits with a non-zero exit code when no arguments are provided."" """
+def no_args(tester):
+    """Test that the program exits with a non-zero exit code when no arguments are provided"""
     tester.setup(args=[])
     assert tester.get_return_code() != 0, "Expected non-zero exit code."
+
+
+@testcase
+def no_type_arg(tester):
+    """Test that the program exits with a non-zero exit code when the -t argument is not provided."""
+    tester.setup(args=["-s", "localhost"])
+    assert tester.get_return_code() != 0, "Expected non-zero exit code."
+
+
+@testcase
+def no_hostname(tester):
+    """Test that the program exits with a non-zero exit code when the -s argument is not provided."""
+    tester.setup(args=["-t", "udp"])
+    assert tester.get_return_code() != 0, "Expected non-zero exit code."
+
+
+@testcase
+def all_args(tester):
+    """Test that the program exits with a non-zero exit code when the -s argument is not provided."""
+    tester.setup(args=["-t", "udp", "-s", "localhost", "-p", "4567"])
+    tester.send_eof()
+    assert tester.get_return_code() == None, "Expected zero exit code."
 
 
 # PART 2 - Testing basic commands
 
 
 @testcase
-def test_hello(tester):
+def hello(tester):
     tester.setup(args=["-t", "udp", "-s", "localhost", "-p", "4567"])
     tester.execute("Hello")
     stdout = tester.get_stdout()
