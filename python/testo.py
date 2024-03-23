@@ -2,6 +2,8 @@ import subprocess
 import sys
 import threading
 import queue
+import math
+from os import get_terminal_size
 from termcolor import colored, cprint
 from time import sleep
 
@@ -13,8 +15,12 @@ def testcase(func):
     def wrapper(tester, *args, **kwargs):
         passed = False
 
-        print("==" * 10)
-        print(colored(f"⏳ Starting test '{func.__name__}'", "yellow"))
+        title = f" ⏳ Starting test '{func.__name__}' "
+        start_sep = "=" * math.floor((get_terminal_size().columns - len(title) - 1) / 2)
+        end_sep = "=" * (
+            get_terminal_size().columns - (len(start_sep) + len(title)) - 1
+        )
+        print(colored("\n" + start_sep + title + end_sep, "yellow"))
         try:
             func(tester, *args, **kwargs)
             print(colored(f"✅ Test '{func.__name__}': PASSED", "green"))
@@ -23,7 +29,7 @@ def testcase(func):
             print(colored(f"❌ Test '{func.__name__}': FAILED - {e}", "red"))
         except Exception as e:
             print(colored(f"❌ Test '{func.__name__}': ERROR - {e}", "red"))
-        print(colored(f"Test '{func.__name__}' finished\n", "yellow"))
+        print(colored(f"Test '{func.__name__}' finished", "yellow"))
         tester.teardown()  # Clean up after test
 
         return passed
@@ -103,17 +109,16 @@ class ExecutableTester:
 
 
 # PART 1 - Testing command-line aguments
-cprint(f"Testing command-line arguments", "white", "on_black")
 
 
 @testcase
 def test_no_args(tester):
+    """Test that the program exits with a non-zero exit code when no arguments are provided."" """
     tester.setup(args=[])
     assert tester.get_return_code() != 0, "Expected non-zero exit code."
 
 
 # PART 2 - Testing basic commands
-cprint(f"Testing basic commands", "white", "on_black")
 
 
 @testcase
