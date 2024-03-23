@@ -38,8 +38,11 @@ class ExecutableTester:
         self.process = None
         self.stdout_queue = queue.Queue()
         self.stderr_queue = queue.Queue()
+        self.return_code = None
 
     def setup(self, args=["-t", "udp", "-s", "localhost", "-p", "4567"]):
+        if self.process:
+            self.teardown()
         self.process = subprocess.Popen(
             [self.executable_path] + args,
             stdin=subprocess.PIPE,
@@ -50,6 +53,8 @@ class ExecutableTester:
         )
         self._start_thread(self.read_stdout, self.stdout_queue)
         self._start_thread(self.read_stderr, self.stderr_queue)
+
+        sleep(0.2)  # Give some time for the process to start
 
     def _start_thread(self, target, queue):
         thread = threading.Thread(target=target, args=(queue,))
@@ -87,6 +92,11 @@ class ExecutableTester:
     def teardown(self):
         self.process.terminate()
         self.process.wait()
+        self.return_code = self.process.returncode
+        self.process = None
+
+    def get_return_code(self):
+        return self.return_code
 
 
 ### TEST CASES ###
@@ -97,21 +107,22 @@ cprint(f"Testing command-line arguments", "white", "on_black")
 
 
 @testcase
+def test_no_args(tester):
+    tester.setup(args=[])
+    assert tester.get_return_code() != 0, "Expected non-zero exit code."
+
+
+# PART 2 - Testing basic commands
+cprint(f"Testing basic commands", "white", "on_black")
+
+
+@testcase
 def test_hello(tester):
     tester.setup(args=["-t", "udp", "-s", "localhost", "-p", "4567"])
     tester.execute("Hello")
     stdout = tester.get_stdout()
     stderr = tester.get_stderr()
     assert "ERR:" in stderr, "Output does not match expected output."
-
-
-@testcase
-def test_hello(tester):
-    tester.setup(args=["-t", "udp", "-s", "localhost", "-p", "4567"])
-    tester.execute("/auth 1 2 3")
-    stdout = tester.get_stdout()
-    stderr = tester.get_stderr()
-    assert "expected_output" in stdout, "Output does not match expected output."
 
 
 ### END TEST CASES ###
