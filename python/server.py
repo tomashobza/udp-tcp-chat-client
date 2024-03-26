@@ -79,7 +79,7 @@ def udp_server():
 
             UDPserverSocket.sendto(
                 bytes([MessageType.REPLY, 0, msg_id, reply, message[1], message[2]])
-                + b"cecky",
+                + b"cecky\0",
                 clientAddress,
             )
             cprint(
@@ -105,7 +105,7 @@ def udp_server():
 
             UDPserverSocket.sendto(
                 bytes([MessageType.REPLY, 0, msg_id, 1, message[1], message[2]])
-                + b"cecky",
+                + b"cecky\0",
                 clientAddress,
             )
             msg_id += 1 if ref_msg_id < inc_msg_id or first_message else 0
