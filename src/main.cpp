@@ -10,5 +10,5 @@ int main(int argc, char *argv[])
 
     fsm.run();
 
-    return 0;
+    exit(EXIT_SUCCESS);
 }

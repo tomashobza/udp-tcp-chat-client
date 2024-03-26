@@ -1,6 +1,5 @@
 #include "ArgParser.hpp"
 
-// TODO: Implement the parse function
 Args ArgParser::parse(int argc, char *argv[])
 {
     Args args = {Protocol::TCP, "localhost", 4567, 250, 3};
