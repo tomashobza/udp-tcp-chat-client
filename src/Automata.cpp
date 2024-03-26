@@ -126,7 +126,7 @@ State Automata::s_start()
             switch (res.message.type)
             {
             case MessageType::ERR:
-                std::cout << "ERR FROM: " << res.message.display_name << " IS " << res.message.contents << std::endl;
+                std::cerr << "ERR FROM " << res.message.display_name << ": " << res.message.contents << std::endl;
                 set_state(S_ERROR);
                 break;
             default:
@@ -186,7 +186,7 @@ State Automata::s_auth()
                 }
                 break;
             case MessageType::ERR:
-                std::cerr << "ERR FROM: " << res.message.display_name << " IS " << res.message.contents << std::endl;
+                std::cerr << "ERR FROM " << res.message.display_name << ": " << res.message.contents << std::endl;
                 postman->bye();
                 set_state(S_END);
                 break;
@@ -255,7 +255,7 @@ State Automata::s_open()
                 std::cout << res.message.display_name << ": " << res.message.contents << std::endl;
                 break;
             case MessageType::ERR:
-                std::cerr << "ERR FROM: " << res.message.display_name << " IS " << res.message.contents << std::endl;
+                std::cerr << "ERR FROM " << res.message.display_name << ": " << res.message.contents << std::endl;
                 postman->bye();
                 set_state(S_END);
                 break;
@@ -304,7 +304,7 @@ State Automata::s_error()
             switch (res.message.type)
             {
             case MessageType::ERR:
-                std::cerr << "ERR FROM: " << res.message.display_name << " IS " << res.message.contents << std::endl;
+                std::cerr << "ERR FROM " << res.message.display_name << ": " << res.message.contents << std::endl;
                 postman->bye();
                 set_state(S_END);
                 break;
