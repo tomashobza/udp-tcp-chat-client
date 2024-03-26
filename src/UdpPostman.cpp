@@ -306,8 +306,8 @@ int UDPPostman::confirm(MessageID ref_id)
     // create the message data buffer
     std::vector<uint8_t> data(data_len);
     data[0] = MessageType::CONFIRM;
-    data[1] = (uint8_t)msg_id >> 8;
-    data[2] = (uint8_t)msg_id & 0xFF;
+    data[1] = (uint8_t)ref_id >> 8;
+    data[2] = (uint8_t)ref_id & 0xFF;
 
     // send the message
     ssize_t n = sendto(client_socket, data.data(), data_len, 0,
@@ -318,13 +318,6 @@ int UDPPostman::confirm(MessageID ref_id)
     {
         throw std::runtime_error("ERROR sending CONFIRM message");
     }
-
-    // // Push the message to the queue of messages to be confirmed
-    // confirm_waiters.push_back(ConfirmWaiter{MSG_MAX_RETRIES, Utils::get_timestamp() + MSG_TIMEOUT, (MessageID)msg_id, data});
-
-    // last_sent_message = Message{};
-    // last_sent_message.type = MessageType::CONFIRM;
-    // last_sent_message.ref_id = ref_id;
 
     return 0;
 }
