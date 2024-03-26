@@ -672,7 +672,18 @@ Message UDPPostman::data_to_message(std::vector<uint8_t> data)
         msg.id = data.at(1) << 8 | data.at(2);
         msg.result = data.at(3);
         msg.ref_id = data.at(4) << 8 | data.at(5);
-        msg.contents = std::string(data.begin() + BEG_OFFSET + STR_OFFSET, data.end());
+        msg.contents = std::string(data.begin() + BEG_OFFSET + STR_OFFSET + sizeof(MessageID), data.end());
+        if (msg.contents.at(msg.contents.size() - 1) == '\0')
+        {
+            msg.contents.pop_back();
+        }
+        else
+        {
+            std::cerr << "ERR: REPLY message not null-terminated!" << std::endl;
+            Message unknown;
+            unknown.type = MessageType::UNKNOWN;
+            return unknown;
+        }
         return msg;
     }
 
@@ -699,6 +710,15 @@ Message UDPPostman::data_to_message(std::vector<uint8_t> data)
             msg.password.push_back(data.at(i));
             i++;
         }
+
+        if (msg.username.size() == 0 || msg.display_name.size() == 0 || msg.password.size() == 0 || data.at(i) != 0)
+        {
+            std::cerr << "ERR: AUTH message has empty fields or wrong NULL termination!" << std::endl;
+            Message unknown;
+            unknown.type = MessageType::UNKNOWN;
+            return unknown;
+        }
+
         return msg;
     }
 
@@ -719,6 +739,15 @@ Message UDPPostman::data_to_message(std::vector<uint8_t> data)
             msg.display_name.push_back(data.at(i));
             i++;
         }
+
+        if (msg.channel_id.size() == 0 || msg.display_name.size() == 0 || data.at(i) != 0)
+        {
+            std::cerr << "ERR: JOIN message has empty fields or wrong NULL termination!" << std::endl;
+            Message unknown;
+            unknown.type = MessageType::UNKNOWN;
+            return unknown;
+        }
+
         return msg;
     }
 
@@ -739,6 +768,15 @@ Message UDPPostman::data_to_message(std::vector<uint8_t> data)
             msg.contents.push_back(data.at(i));
             i++;
         }
+
+        if (msg.display_name.size() == 0 || msg.contents.size() == 0 || data.at(i) != 0)
+        {
+            std::cerr << "ERR: MSG message has empty fields or wrong NULL termination!" << std::endl;
+            Message unknown;
+            unknown.type = MessageType::UNKNOWN;
+            return unknown;
+        }
+
         return msg;
     }
 
@@ -759,6 +797,15 @@ Message UDPPostman::data_to_message(std::vector<uint8_t> data)
             msg.contents.push_back(data.at(i));
             i++;
         }
+
+        if (msg.display_name.size() == 0 || msg.contents.size() == 0 || data.at(i) != 0)
+        {
+            std::cerr << "ERR: ERR message has empty fields or wrong NULL termination!" << std::endl;
+            Message unknown;
+            unknown.type = MessageType::UNKNOWN;
+            return unknown;
+        }
+
         return msg;
     }
 
