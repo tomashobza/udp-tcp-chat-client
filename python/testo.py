@@ -330,6 +330,82 @@ def udp_svr_msg(tester):
         ["c: ahojky" in line for line in stdout.split("\n")]
     ), "Output does not match expected output."
 
+    # Should receive CONFIRM for the MSG message
+    message = tester.receive_message()
+    assert (
+        message == b"\x00\x00\x01"
+    ), "Incoming message does not match expected CONFIRM message."
+
+
+@testcase
+def udp_bye1(tester):
+    tester.start_server("udp", 4567)
+    tester.setup(args=["-t", "udp", "-s", "localhost", "-p", "4567"])
+
+    # Send a message from the server
+    tester.send_signal(signal.SIGINT)
+
+    message = tester.receive_message()
+    assert (
+        message == b"\xff\x00\x00"
+    ), "Incoming message does not match expected BYE message."
+
+
+@testcase
+def udp_bye2(tester):
+    auth_and_reply(tester)
+
+    # Send a message from the server
+    tester.send_signal(signal.SIGINT)
+
+    message = tester.receive_message()
+    assert (
+        message == b"\xff\x00\x01"
+    ), "Incoming message does not match expected BYE message."
+
+
+@testcase
+def udp_server_err1(tester):
+    tester.start_server("udp", 4567)
+    tester.setup(args=["-t", "udp", "-s", "localhost", "-p", "4567"])
+
+    # Send a message from the server
+    tester.send_message(b"\xfe\x00\x00server\x00chyba\x00")
+
+    sleep(0.4)
+
+    stderr = tester.get_stderr()
+    assert any(
+        ["ERR FROM server: chyba" in line for line in stderr.split("\n")]
+    ), "Output does not match expected error message."
+
+    # Should receive CONFIRM for the MSG message
+    message = tester.receive_message()
+    assert (
+        message == b"\x00\x00\x00"
+    ), "Incoming message does not match expected CONFIRM message."
+
+
+@testcase
+def udp_server_err2(tester):
+    auth_and_reply(tester)
+
+    # Send a message from the server
+    tester.send_message(b"\xfe\x00\x01server\x00chyba\x00")
+
+    sleep(0.2)
+
+    stderr = tester.get_stderr()
+    assert any(
+        ["ERR FROM server: chyba" in line for line in stderr.split("\n")]
+    ), "Output does not match expected error message."
+
+    # Should receive CONFIRM for the MSG message
+    message = tester.receive_message()
+    assert (
+        message == b"\x00\x00\x01"
+    ), "Incoming message does not match expected CONFIRM message."
+
 
 ### END TEST CASES ###
 
