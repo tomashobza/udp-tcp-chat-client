@@ -156,7 +156,7 @@ int UDPPostman::join(const std::string &channel_id, const std::string &display_n
 int UDPPostman::message(const std::string &display_name, const std::string &message_contents)
 {
     // get the message data size
-    size_t data_len = BEG_OFFSET + display_name.size() + STR_OFFSET + message_contents.size();
+    size_t data_len = BEG_OFFSET + display_name.size() + STR_OFFSET + message_contents.size() + sizeof(uint8_t);
 
     // create the message data buffer
     std::vector<uint8_t> data(data_len);

@@ -264,8 +264,7 @@ def udp_auth_nok(tester):
     ), "Incoming message does not match expected CONFIRM message."
 
 
-@testcase
-def udp_auth_ok(tester):
+def auth_and_reply(tester):
     tester.start_server("udp", 4567)
     tester.setup(args=["-t", "udp", "-s", "localhost", "-p", "4567"])
     tester.execute("/auth a b c")
@@ -296,6 +295,40 @@ def udp_auth_ok(tester):
     assert (
         message == b"\x00\x00\x00"
     ), "Incoming message does not match expected CONFIRM message."
+
+
+@testcase
+def udp_auth_ok(tester):
+    auth_and_reply(tester)
+
+
+@testcase
+def udp_msg(tester):
+    auth_and_reply(tester)
+
+    tester.execute("ahojky")
+
+    # Expect the message to be received by the server
+    message = tester.receive_message()
+    assert (
+        message == b"\x04\x00\x01c\x00ahojky\x00"
+    ), "Incoming message does not match expected MSG message."
+
+
+@testcase
+def udp_svr_msg(tester):
+    auth_and_reply(tester)
+
+    # Send a message from the server
+    tester.send_message(b"\x04\x00\x01c\x00ahojky\x00")
+
+    sleep(0.2)
+
+    # Check the output, should contain "ahojky"
+    stdout = tester.get_stdout()
+    assert any(
+        ["c: ahojky" in line for line in stdout.split("\n")]
+    ), "Output does not match expected output."
 
 
 ### END TEST CASES ###
