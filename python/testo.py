@@ -264,6 +264,40 @@ def udp_auth_nok(tester):
     ), "Incoming message does not match expected CONFIRM message."
 
 
+@testcase
+def udp_auth_ok(tester):
+    tester.start_server("udp", 4567)
+    tester.setup(args=["-t", "udp", "-s", "localhost", "-p", "4567"])
+    tester.execute("/auth a b c")
+
+    # Expect the auth message to be received by the server
+    message = tester.receive_message()
+
+    assert (
+        message == b"\x02\x00\x00a\x00c\x00b\x00"
+    ), "Incoming message does not match expected AUTH message."
+
+    # Confirm the AUTH message
+    tester.send_message(b"\x00\x00\x00")
+
+    # Reply with NOK
+    tester.send_message(b"\x01\x00\x00\x01\x00\x00jojo\x00")
+
+    sleep(0.2)
+
+    # Check the output, should contain "Success: jojo"
+    stderr = tester.get_stderr()
+    assert any(
+        ["Success: jojo" in line for line in stderr.split("\n")]
+    ), "Output does not match expected 'Success: jojo' output."
+
+    # Should receive CONFIRM for the REPLY message
+    message = tester.receive_message()
+    assert (
+        message == b"\x00\x00\x00"
+    ), "Incoming message does not match expected CONFIRM message."
+
+
 ### END TEST CASES ###
 
 
