@@ -67,6 +67,11 @@ Command InputParser::parse_input()
     {
         goto help;
     }
+    else if (command.at(0) == '/')
+    {
+        std::cerr << "ERR: not a valid command!" << std::endl;
+        goto help;
+    }
     else
     {
         if (input.size() == 0)
