@@ -7,6 +7,11 @@ TARGET=bin/ipk24chat-client
 # Define source files
 SOURCES=$(wildcard src/*.cpp)
 
+TEST_FLAGS=
+ifeq ($(DEBUG), true)
+	TEST_FLAGS=-d
+endif
+
 .PHONY: main run clean server
 
 # Main target
@@ -23,7 +28,7 @@ run-only:
 	@./$(TARGET) -t udp -s localhost
 
 test:
-	python3.11 python/testing_server.py bin/ipk24chat-client
+	python3 python/testo.py bin/ipk24chat-client $(TEST_FLAGS)
 
 # Clean target
 clean:

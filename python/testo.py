@@ -7,6 +7,10 @@ from os import get_terminal_size
 from termcolor import colored, cprint
 from time import sleep
 import signal
+import socket
+import select
+
+global debug
 
 # Define a global list to hold all test case functions
 test_cases = []
@@ -46,6 +50,43 @@ class ExecutableTester:
         self.stdout_queue = queue.Queue()
         self.stderr_queue = queue.Queue()
         self.return_code = None
+        self.server_socket = None
+        self.connection_socket = None  # For TCP connections
+        self.client_address = None  # For UDP responses
+
+    def start_server(self, protocol, port):
+        if protocol.lower() == "tcp":
+            self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.server_socket.bind(("localhost", port))
+            self.server_socket.listen(1)
+            self.connection_socket, _ = self.server_socket.accept()
+        elif protocol.lower() == "udp":
+            self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            self.server_socket.bind(("localhost", port))
+
+    def stop_server(self):
+        if self.connection_socket:
+            self.connection_socket.close()
+        if self.server_socket:
+            self.server_socket.close()
+
+    def send_message(self, message):
+        if self.connection_socket:  # TCP
+            self.connection_socket.sendall(message.encode())
+        elif self.server_socket and self.client_address:  # UDP
+            self.server_socket.sendto(message, self.client_address)
+
+    def receive_message(self, timeout=5):
+        if self.server_socket:
+            self.server_socket.settimeout(timeout)
+            try:
+                if self.connection_socket:  # TCP
+                    return self.connection_socket.recv(1024).decode()
+                else:  # UDP
+                    message, self.client_address = self.server_socket.recvfrom(1024)
+                    return message
+            except socket.timeout:
+                return None
 
     def setup(self, args=["-t", "udp", "-s", "localhost", "-p", "4567"]):
         if self.process:
@@ -71,12 +112,14 @@ class ExecutableTester:
 
     def read_stdout(self, queue):
         for line in iter(self.process.stdout.readline, ""):
-            print(colored("STDOUT:", "blue"), colored(line, "blue"), end="")
+            if debug:
+                print(colored("STDOUT:", "blue"), colored(line, "blue"), end="")
             queue.put(line)
 
     def read_stderr(self, queue):
         for line in iter(self.process.stderr.readline, ""):
-            print(colored("STDERR:", "magenta"), colored(line, "magenta"), end="")
+            if debug:
+                print(colored("STDERR:", "magenta"), colored(line, "magenta"), end="")
             queue.put(line)
 
     def execute(self, input_data):
@@ -103,6 +146,10 @@ class ExecutableTester:
             self.process.wait()
             self.return_code = self.process.returncode
             self.process = None
+
+        self.stop_server()
+        self.server_socket = None
+        self.connection_socket = None
 
     def get_return_code(self):
         return self.return_code
@@ -149,16 +196,72 @@ def all_args(tester):
     assert tester.get_return_code() == None, "Expected zero exit code."
 
 
-# PART 2 - Testing basic commands
+# PART 2: UDP - Testing basic commands
 
 
 @testcase
-def hello(tester):
+def udp_hello(tester):
     tester.setup(args=["-t", "udp", "-s", "localhost", "-p", "4567"])
     tester.execute("Hello")
     stdout = tester.get_stdout()
     stderr = tester.get_stderr()
     assert "ERR:" in stderr, "Output does not match expected output."
+
+
+@testcase
+def udp_invalid_command(tester):
+    tester.setup(args=["-t", "udp", "-s", "localhost", "-p", "4567"])
+    tester.execute("/pepe")
+    stdout = tester.get_stdout()
+    stderr = tester.get_stderr()
+    assert "ERR:" in stderr, "Output does not match expected output."
+
+
+@testcase
+def udp_auth(tester):
+    tester.start_server("udp", 4567)
+    tester.setup(args=["-t", "udp", "-s", "localhost", "-p", "4567"])
+    tester.execute("/auth a b c")
+
+    message = tester.receive_message()
+
+    assert (
+        message == b"\x02\x00\x00a\x00c\x00b\x00"
+    ), "Incoming message does not match expected message."
+
+
+@testcase
+def udp_auth_nok(tester):
+    tester.start_server("udp", 4567)
+    tester.setup(args=["-t", "udp", "-s", "localhost", "-p", "4567"])
+    tester.execute("/auth a b c")
+
+    # Expect the auth message to be received by the server
+    message = tester.receive_message()
+
+    assert (
+        message == b"\x02\x00\x00a\x00c\x00b\x00"
+    ), "Incoming message does not match expected AUTH message."
+
+    # Confirm the AUTH message
+    tester.send_message(b"\x00\x00\x00")
+
+    # Reply with NOK
+    tester.send_message(b"\x01\x00\x00\x00\x00\x00nene\x00")
+
+    sleep(0.2)
+
+    # Check the output, should contain "Failure: nene"
+    stderr = tester.get_stderr()
+    assert any(
+        ["Failure: nene" in line for line in stderr.split("\n")]
+    ), "Output does not match expected 'Failure: nene' output."
+
+    # Should receive CONFIRM for the REPLY message
+    message = tester.receive_message()
+    assert (
+        message == b"\x00\x00\x00"
+    ), "Incoming message does not match expected CONFIRM message."
 
 
 ### END TEST CASES ###
@@ -177,8 +280,11 @@ def run_tests(executable_path):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print("Usage: python test_executable.py <path_to_executable>")
+    if (len(sys.argv) == 2 and sys.argv[1] == "-h") or (
+        len(sys.argv) != 2 and len(sys.argv) != 3
+    ):
+        print("Usage: python test_executable.py <path_to_executable> [-d: debug]")
         sys.exit(1)
     executable_path = sys.argv[1]
+    debug = len(sys.argv) == 3 and sys.argv[2] == "-d"
     run_tests(executable_path)
