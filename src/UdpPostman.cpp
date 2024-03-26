@@ -345,7 +345,6 @@ PollResults UDPPostman::poll_for_messages()
         res.type = PollResultType::USER;
         res.message.type = MessageType::BYE;
         res.message.id = msg_id;
-        msg_id++;
         results.push_back(res);
         return results;
     }
@@ -384,7 +383,6 @@ PollResults UDPPostman::poll_for_messages()
             res.type = PollResultType::USER;
             res.message.type = MessageType::BYE;
             res.message.id = msg_id;
-            msg_id++;
             results.push_back(res);
             return results;
         }
@@ -425,7 +423,6 @@ PollResults UDPPostman::poll_for_messages()
             res.type = PollResultType::USER;
             res.message.type = MessageType::BYE;
             res.message.id = msg_id;
-            msg_id++;
             results.push_back(res);
             return results;
         }
