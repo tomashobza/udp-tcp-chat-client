@@ -13,8 +13,6 @@ private:
     IPostman *postman;
     /** The current state of the automata */
     State state = S_START;
-    /** The display name of the user */
-    std::string display_name = "User";
 
 public:
     Automata(Args args);
@@ -27,13 +25,6 @@ public:
      * @return State - the new state
      */
     State set_state(State new_state);
-
-    /**
-     * @brief Change the display name of the user.
-     *
-     * @param new_display_name
-     */
-    void rename(const std::string &new_display_name);
 
     // STATE METHODS
 

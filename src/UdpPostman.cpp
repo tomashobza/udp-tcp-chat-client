@@ -49,6 +49,11 @@ UDPPostman::~UDPPostman()
     close(client_socket);
 }
 
+std::string UDPPostman::get_display_name()
+{
+    return display_name;
+}
+
 void UDPPostman::attach_to_server(const std::string &server_hostname, uint16_t port_number)
 {
     // Set the server address
@@ -74,6 +79,7 @@ int UDPPostman::authorize(const std::string &username, const std::string &displa
 
     // create the message data buffer
     std::vector<uint8_t> data(data_len);
+    std::fill(data.begin(), data.end(), 0);
     data[0] = MessageType::AUTH;
     data[1] = (uint8_t)msg_id >> 8;
     data[2] = (uint8_t)msg_id & 0xFF;
@@ -114,10 +120,11 @@ int UDPPostman::authorize(const std::string &username, const std::string &displa
 int UDPPostman::join(const std::string &channel_id, const std::string &display_name)
 {
     // get the message data size
-    size_t data_len = BEG_OFFSET + channel_id.size() + STR_OFFSET + display_name.size();
+    size_t data_len = BEG_OFFSET + channel_id.size() + STR_OFFSET + display_name.size() + STR_OFFSET;
 
     // create the message data buffer
     std::vector<uint8_t> data(data_len);
+    std::fill(data.begin(), data.end(), 0);
     data[0] = MessageType::JOIN;
     data[1] = (uint8_t)msg_id >> 8;
     data[2] = (uint8_t)msg_id & 0xFF;
@@ -156,10 +163,12 @@ int UDPPostman::join(const std::string &channel_id, const std::string &display_n
 int UDPPostman::message(const std::string &display_name, const std::string &message_contents)
 {
     // get the message data size
-    size_t data_len = BEG_OFFSET + display_name.size() + STR_OFFSET + message_contents.size() + sizeof(uint8_t);
+    size_t data_len = BEG_OFFSET + display_name.size() + STR_OFFSET + message_contents.size() + STR_OFFSET;
 
     // create the message data buffer
     std::vector<uint8_t> data(data_len);
+    std::fill(data.begin(), data.end(), 0);
+
     data[0] = MessageType::MSG;
     data[1] = (uint8_t)msg_id >> 8;
     data[2] = (uint8_t)msg_id & 0xFF;
@@ -198,6 +207,7 @@ int UDPPostman::error(const std::string &display_name, const std::string &messag
 
     // create the message data buffer
     std::vector<uint8_t> data(data_len);
+    std::fill(data.begin(), data.end(), 0);
     data[0] = MessageType::ERR;
     data[1] = (uint8_t)msg_id >> 8;
     data[2] = (uint8_t)msg_id & 0xFF;
@@ -236,6 +246,7 @@ int UDPPostman::bye()
 
     // create the message data buffer
     std::vector<uint8_t> data(data_len);
+    std::fill(data.begin(), data.end(), 0);
     data[0] = MessageType::BYE;
     data[1] = (uint8_t)msg_id >> 8;
     data[2] = (uint8_t)msg_id & 0xFF;
@@ -272,6 +283,7 @@ int UDPPostman::confirm()
 
     // create the message data buffer
     std::vector<uint8_t> data(data_len);
+    std::fill(data.begin(), data.end(), 0);
     data[0] = MessageType::CONFIRM;
     data[1] = (uint8_t)ref_msg_id >> 8;
     data[2] = (uint8_t)ref_msg_id & 0xFF;
@@ -305,6 +317,7 @@ int UDPPostman::confirm(MessageID ref_id)
 
     // create the message data buffer
     std::vector<uint8_t> data(data_len);
+    std::fill(data.begin(), data.end(), 0);
     data[0] = MessageType::CONFIRM;
     data[1] = (uint8_t)ref_id >> 8;
     data[2] = (uint8_t)ref_id & 0xFF;

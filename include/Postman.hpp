@@ -35,8 +35,8 @@ protected:
     int16_t ref_msg_id = 0;
     /** The timestamp of the last time check. */
     long long timestamp = std::chrono::system_clock::now().time_since_epoch().count();
-    /** Display name */
-    std::string display_name;
+    /** Display name of the user */
+    std::string display_name = "User";
     /** List of allowed server messages */
     std::vector<MessageType> allowed_server_messages = {};
     /** List of allowed client commands */
@@ -47,6 +47,13 @@ protected:
     bool is_waiting_for_reply = false;
 
 public:
+    /**
+     * @brief Get the display name of the user
+     *
+     * @return std::string - display name
+     */
+    virtual std::string get_display_name() = 0;
+
     /**
      * @brief Attach to a server by hostname and port number.
      *

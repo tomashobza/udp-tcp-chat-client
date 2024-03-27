@@ -21,6 +21,7 @@ public:
     UDPPostman(Args args);
     ~UDPPostman();
 
+    std::string get_display_name();
     void attach_to_server(const std::string &server_hostname, uint16_t port_number) override;
     int authorize(const std::string &username, const std::string &display_name, const std::string &password) override;
     int join(const std::string &channel_id, const std::string &display_name) override;

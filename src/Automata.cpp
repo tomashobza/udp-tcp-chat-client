@@ -50,11 +50,6 @@ State Automata::set_state(State new_state)
     return state;
 };
 
-void Automata::rename(const std::string &new_display_name)
-{
-    display_name = new_display_name;
-};
-
 void Automata::run()
 {
 
@@ -106,16 +101,23 @@ State Automata::s_start()
             {
             case MessageType::AUTH:
                 // Send the message
-                postman->authorize(res.message.username, res.message.display_name, res.message.password);
+                postman->authorize(res.message.username, postman->get_display_name(), res.message.password);
                 set_state(S_AUTH);
                 break;
+
             case MessageType::BYE:
                 postman->bye();
                 set_state(S_END);
                 break;
+
+            case MessageType::ERR:
+                std::cerr << "ERR: " << res.message.contents << std::endl;
+                set_state(S_END);
+                break;
+
             default:
                 std::cerr << "ERR: Unexpected user command!" << std::endl;
-                postman->error(display_name, "Unexpected user command!");
+                postman->error(postman->get_display_name(), "Unexpected user command!");
                 set_state(S_ERROR);
                 break;
             }
@@ -129,9 +131,10 @@ State Automata::s_start()
                 std::cerr << "ERR FROM " << res.message.display_name << ": " << res.message.contents << std::endl;
                 set_state(S_ERROR);
                 break;
+
             default:
                 std::cerr << "ERR: Unexpected message from server!" << std::endl;
-                postman->error(display_name, "Unexpected message from server!");
+                postman->error(postman->get_display_name(), "Unexpected message from server!");
                 set_state(S_ERROR);
                 break;
             }
@@ -157,15 +160,22 @@ State Automata::s_auth()
             {
             case MessageType::AUTH:
                 // Send the message
-                postman->authorize(res.message.username, res.message.display_name, res.message.password);
+                postman->authorize(res.message.username, postman->get_display_name(), res.message.password);
                 break;
+
             case MessageType::BYE:
                 postman->bye();
                 set_state(S_END);
                 break;
+
+            case MessageType::ERR:
+                std::cerr << "ERR: " << res.message.contents << std::endl;
+                set_state(S_END);
+                break;
+
             default:
                 std::cerr << "ERR: Unexpected user command!" << std::endl;
-                postman->error(display_name, "Unexpected user command!");
+                postman->error(postman->get_display_name(), "Unexpected user command!");
                 set_state(S_ERROR);
                 break;
             }
@@ -185,14 +195,16 @@ State Automata::s_auth()
                     std::cerr << "Failure: " << res.message.contents << std::endl;
                 }
                 break;
+
             case MessageType::ERR:
                 std::cerr << "ERR FROM " << res.message.display_name << ": " << res.message.contents << std::endl;
                 postman->bye();
                 set_state(S_END);
                 break;
+
             default:
                 std::cerr << "ERR: Unexpected message from server!" << std::endl;
-                postman->error(display_name, "Unexpected message from server!");
+                postman->error(postman->get_display_name(), "Unexpected message from server!");
                 set_state(S_ERROR);
                 break;
             }
@@ -218,16 +230,21 @@ State Automata::s_open()
             {
             case MessageType::JOIN:
                 // Send the message
-                postman->join(res.message.channel_id, res.message.display_name);
+                postman->join(res.message.channel_id, postman->get_display_name());
                 break;
 
             case MessageType::MSG:
                 // Send the message
-                postman->message(res.message.display_name, res.message.contents);
+                postman->message(postman->get_display_name(), res.message.contents);
                 break;
 
             case MessageType::BYE:
                 postman->bye();
+                set_state(S_END);
+                break;
+
+            case MessageType::ERR:
+                std::cerr << "ERR: " << res.message.contents << std::endl;
                 set_state(S_END);
                 break;
 
@@ -252,7 +269,7 @@ State Automata::s_open()
                 }
                 break;
             case MessageType::MSG:
-                std::cout << res.message.display_name << ": " << res.message.contents << std::endl;
+                std::cout << postman->get_display_name() << ": " << res.message.contents << std::endl;
                 break;
             case MessageType::ERR:
                 std::cerr << "ERR FROM " << res.message.display_name << ": " << res.message.contents << std::endl;
@@ -264,7 +281,7 @@ State Automata::s_open()
                 break;
             default:
                 std::cerr << "ERR: Unexpected message from server!" << std::endl;
-                postman->error(display_name, "Unexpected message from server!");
+                postman->error(postman->get_display_name(), "Unexpected message from server!");
                 set_state(S_ERROR);
                 break;
             }
@@ -292,9 +309,15 @@ State Automata::s_error()
                 postman->bye();
                 set_state(S_END);
                 break;
+
+            case MessageType::ERR:
+                std::cerr << "ERR: " << res.message.contents << std::endl;
+                set_state(S_END);
+                break;
+
             default:
                 std::cerr << "ERR: Unexpected user command!" << std::endl;
-                postman->error(display_name, "Unexpected user command!");
+                postman->error(postman->get_display_name(), "Unexpected user command!");
                 set_state(S_ERROR);
                 break;
             }
@@ -310,7 +333,7 @@ State Automata::s_error()
                 break;
             default:
                 std::cerr << "ERR: Unexpected message from server!" << std::endl;
-                postman->error(display_name, "Unexpected message from server!");
+                postman->error(postman->get_display_name(), "Unexpected message from server!");
                 set_state(S_ERROR);
                 break;
             }
