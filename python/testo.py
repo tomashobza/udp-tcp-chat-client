@@ -407,6 +407,77 @@ def udp_server_err2(tester):
     ), "Incoming message does not match expected CONFIRM message."
 
 
+@testcase
+def udp_join_ok(tester):
+    auth_and_reply(tester)
+
+    tester.execute("/rename user")
+
+    tester.execute("/join channel")
+
+    # Expect the join message to be received by the server
+    message = tester.receive_message()
+
+    assert (
+        message == b"\x03\x00\x01channel\x00user\x00"
+    ), "Incoming message does not match expected JOIN message."
+
+    # Send REPLY message
+    tester.send_message(b"\x01\x00\x01\x01\x00\x01jojo\x00")
+
+    sleep(0.2)
+
+    # Check the output, should contain "Success: jojo"
+    stderr = tester.get_stderr()
+    assert any(
+        ["Success: jojo" in line for line in stderr.split("\n")]
+    ), "Output does not match expected 'Success: jojo' output."
+
+    # Should receive CONFIRM for the REPLY message
+    message = tester.receive_message()
+    assert (
+        message == b"\x00\x00\x01"
+    ), "Incoming message does not match expected CONFIRM message."
+
+
+@testcase
+def udp_join_nok(tester):
+    auth_and_reply(tester)
+
+    tester.execute("/rename user")
+
+    tester.execute("/join channel")
+
+    # Expect the join message to be received by the server
+    message = tester.receive_message()
+
+    assert (
+        message == b"\x03\x00\x01channel\x00user\x00"
+    ), "Incoming message does not match expected JOIN message."
+
+    # Send REPLY message
+    tester.send_message(b"\x01\x00\x01\x00\x00\x01jojo\x00")
+
+    sleep(0.2)
+
+    # Check the output, should contain "Failure: jojo"
+    stderr = tester.get_stderr()
+    assert any(
+        ["Failure: jojo" in line for line in stderr.split("\n")]
+    ), "Output does not match expected 'Failure: jojo' output."
+
+    # Should receive CONFIRM for the REPLY message
+    message = tester.receive_message()
+    assert (
+        message == b"\x00\x00\x01"
+    ), "Incoming message does not match expected CONFIRM message."
+
+
+@testcase
+def udp_multiple_auth(tester):
+    yield
+
+
 ### END TEST CASES ###
 
 
