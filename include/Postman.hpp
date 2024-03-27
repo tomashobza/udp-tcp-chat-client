@@ -29,10 +29,6 @@ protected:
     int client_socket;
     /** Server address */
     struct sockaddr_in server_address;
-    /** The ID of the next message to be sent. */
-    uint16_t msg_id = 0;
-    /** The ID of the last message received. */
-    int16_t ref_msg_id = 0;
     /** The timestamp of the last time check. */
     long long timestamp = std::chrono::system_clock::now().time_since_epoch().count();
     /** Display name of the user */
