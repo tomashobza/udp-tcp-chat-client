@@ -276,8 +276,6 @@ int UDPPostman::bye()
 
 int UDPPostman::confirm()
 {
-    std::clog << "> CONFIRM " << ref_msg_id << std::endl;
-
     // get the message data size
     size_t data_len = BEG_OFFSET;
 
@@ -297,13 +295,6 @@ int UDPPostman::confirm()
     {
         throw std::runtime_error("ERROR sending CONFIRM message");
     }
-
-    // // Push the message to the queue of messages to be confirmed
-    // confirm_waiters.push_back(ConfirmWaiter{MSG_MAX_RETRIES, Utils::get_timestamp() + MSG_TIMEOUT, (MessageID)msg_id, data});
-
-    // last_sent_message = Message{};
-    // last_sent_message.type = MessageType::CONFIRM;
-    // last_sent_message.ref_id = ref_msg_id;
 
     return 0;
 }
