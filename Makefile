@@ -20,12 +20,19 @@ main: $(SOURCES)
 	$(CXX) -I./include -o $(TARGET) $(SOURCES) $(CXXFLAGS)
 
 # Run target
-run: main
+run-udp: main
 	@echo "\n=== Running the program ==="
 	@./$(TARGET) -t udp -s localhost
 
-run-only:
+run-tcp: main
+	@echo "\n=== Running the program ==="
+	@./$(TARGET) -t tcp -s localhost
+
+run-only-udp:
 	@./$(TARGET) -t udp -s localhost
+
+run-only-tcp:
+	@./$(TARGET) -t tcp -s localhost
 
 test:
 	python3 python/testo.py bin/ipk24chat-client $(TEST_FLAGS)
