@@ -326,16 +326,6 @@ int UDPPostman::confirm(MessageID ref_id)
     return 0;
 }
 
-int UDPPostman::get_client_socket()
-{
-    return client_socket;
-}
-
-struct sockaddr_in UDPPostman::get_server_address()
-{
-    return server_address;
-}
-
 PollResults UDPPostman::poll_for_messages()
 {
     PollResults results;
@@ -539,8 +529,6 @@ PollResults UDPPostman::handle_server_message()
     //
     bool is_first = first_message;
     bool is_new = (msg.id > ref_msg_id || is_first);
-
-    // TODO: handle incorrect reply ref msg id
 
     if (is_contentful && !is_unknown)
     {

@@ -8,9 +8,9 @@ Automata::Automata(Args args)
     case Protocol::UDP:
         postman = new UDPPostman(args);
         break;
-    // case Protocol::TCP:
-    //     postman = new TCPPostman(args);
-    //     break;
+    case Protocol::TCP:
+        postman = new TCPPostman(args);
+        break;
     default:
         break;
     }

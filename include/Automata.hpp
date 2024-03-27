@@ -4,7 +4,7 @@
 #include "types.hpp"
 #include "Postman.hpp"
 #include "UdpPostman.hpp"
-// #include "TcpPostman.hpp"
+#include "TcpPostman.hpp"
 
 class Automata
 {
