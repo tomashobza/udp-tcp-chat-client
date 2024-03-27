@@ -32,10 +32,6 @@ public:
     int message(const std::string &display_name, const std::string &message_contents) override;
     int error(const std::string &display_name, const std::string &message_contents) override;
     int bye() override;
-    int confirm() override;
-    int confirm(MessageID ref_id);
-    int get_client_socket() override;
-    struct sockaddr_in get_server_address() override;
     PollResults poll_for_messages() override;
 
     Message receive() override;
@@ -45,7 +41,22 @@ public:
     PollResults handle_server_message() override;
     PollResults handle_user_command() override;
 
-    Message data_to_message(std::vector<uint8_t> data);
+    Message data_to_message(std::vector<uint8_t> data) override;
+
+    /**
+     * @brief Send the CONFIRM message to the server.
+     *
+     * @return int - >0 (number of sent B) if successful, -1 if failed
+     */
+    int confirm();
+
+    /**
+     * @brief Send the CONFIRM message to the server.
+     *
+     * @param ref_id - ReferenceID of the CONFIRM message
+     * @return int - >0 (number of sent B) if successful, -1 if failed
+     */
+    int confirm(MessageID ref_id);
 
     bool check_waiters();
 };

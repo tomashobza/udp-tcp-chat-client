@@ -44,6 +44,20 @@ protected:
 
 public:
     /**
+     * @brief Get the client socket file descriptor.
+     *
+     * @return int - the client socket file descriptor
+     */
+    int get_client_socket();
+
+    /**
+     * @brief Get the server address.
+     *
+     * @return struct sockaddr_in - the server address
+     */
+    struct sockaddr_in get_server_address();
+
+    /**
      * @brief Get the display name of the user
      *
      * @return std::string - display name
@@ -57,13 +71,6 @@ public:
      * @param port_number - the port number of the server
      */
     virtual void attach_to_server(const std::string &server_hostname, uint16_t port_number) = 0;
-
-    /**
-     * @brief Send the CONFIRM message to the server.
-     *
-     * @return int - >0 (number of sent B) if successful, -1 if failed
-     */
-    virtual int confirm() = 0;
 
     /**
      * @brief Send the AUTH message to the server.
@@ -110,20 +117,6 @@ public:
     virtual int bye() = 0;
 
     /**
-     * @brief Get the client socket file descriptor.
-     *
-     * @return int - the client socket file descriptor
-     */
-    virtual int get_client_socket() = 0;
-
-    /**
-     * @brief Get the server address.
-     *
-     * @return struct sockaddr_in - the server address
-     */
-    virtual struct sockaddr_in get_server_address() = 0;
-
-    /**
      * @brief Receive a message from the server or stdin.
      *
      * @return Message
@@ -137,6 +130,8 @@ public:
 
     virtual PollResults handle_server_message() = 0;
     virtual PollResults handle_user_command() = 0;
+
+    virtual Message data_to_message(std::vector<uint8_t> data) = 0;
 };
 
 #endif // POSTMAN_H
