@@ -20,7 +20,7 @@ public:
      *
      * @param signal - the signal number
      */
-    static void handle_sigint(int signal);
+    static void udp_handle_sigint(int signal);
 
     UDPPostman(Args args);
     ~UDPPostman();

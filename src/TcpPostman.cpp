@@ -1,7 +1,20 @@
 #include "TcpPostman.hpp"
 
+/** Had SIGINT flag */
+bool tcp_had_sigint = false;
+
+void TCPPostman::tcp_handle_sigint(int signal)
+{
+    if (signal == SIGINT)
+    {
+        tcp_had_sigint = true;
+    }
+}
+
 TCPPostman::TCPPostman(Args args)
 {
+    std::signal(SIGINT, TCPPostman::tcp_handle_sigint);
+
     // Create the socket
     client_socket = socket(AF_INET, SOCK_STREAM, 0);
     if (client_socket < 0)
@@ -169,7 +182,7 @@ PollResults TCPPostman::poll_for_messages()
     PollResults results;
 
     // Check if the user has pressed Ctrl+C
-    if (had_sigint)
+    if (tcp_had_sigint)
     {
         is_waiting_for_reply = false;
         // Send the BYE message
@@ -194,7 +207,7 @@ PollResults TCPPostman::poll_for_messages()
     if (ret == -1)
     {
         // An error occurred, check if it was due to a SIGINT signal
-        if (had_sigint)
+        if (tcp_had_sigint)
         {
             is_waiting_for_reply = false;
             PollResult res;

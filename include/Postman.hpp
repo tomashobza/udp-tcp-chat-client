@@ -20,7 +20,7 @@
 #include "InputParser.hpp"
 #include "Utils.hpp"
 
-extern bool had_sigint;
+extern bool tcp_had_sigint;
 
 class IPostman
 {

@@ -4,6 +4,13 @@
 class TCPPostman : public IPostman
 {
 public:
+    /**
+     * @brief Handle the SIGINT signal.
+     *
+     * @param signal - the signal number
+     */
+    static void tcp_handle_sigint(int signal);
+
     TCPPostman(Args args);
     ~TCPPostman();
 

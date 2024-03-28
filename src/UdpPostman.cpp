@@ -1,19 +1,19 @@
 #include "UdpPostman.hpp"
 
 /** Had SIGINT flag */
-bool had_sigint = false;
+bool udp_had_sigint = false;
 
-void UDPPostman::handle_sigint(int signal)
+void UDPPostman::udp_handle_sigint(int signal)
 {
     if (signal == SIGINT)
     {
-        had_sigint = true;
+        udp_had_sigint = true;
     }
 }
 
 UDPPostman::UDPPostman(Args args)
 {
-    std::signal(SIGINT, UDPPostman::handle_sigint);
+    std::signal(SIGINT, UDPPostman::udp_handle_sigint);
 
     // Create the client socket
     client_socket = socket(AF_INET, SOCK_DGRAM, 0);
@@ -331,7 +331,7 @@ PollResults UDPPostman::poll_for_messages()
     PollResults results;
 
     // Check if the user has pressed Ctrl+C
-    if (had_sigint)
+    if (udp_had_sigint)
     {
         is_waiting_for_reply = false;
         // Send the BYE message
@@ -370,7 +370,7 @@ PollResults UDPPostman::poll_for_messages()
     if (ret == -1)
     {
         // An error occurred, check if it was due to a SIGINT signal
-        if (had_sigint)
+        if (udp_had_sigint)
         {
             is_waiting_for_reply = false;
             PollResult res;
