@@ -71,10 +71,17 @@ class ExecutableTester:
             self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.server_socket.bind(("localhost", port))
             self.server_socket.listen(1)
-            self.connection_socket, _ = self.server_socket.accept()
+            # Start a new thread to run the blocking accept call
+            thread = threading.Thread(target=self.accept_connection)
+            thread.daemon = True  # Daemon threads exit when the main program does
+            thread.start()
+
         elif protocol.lower() == "udp":
             self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             self.server_socket.bind(("localhost", port))
+
+    def accept_connection(self):
+        self.connection_socket, _ = self.server_socket.accept()
 
     def stop_server(self):
         if self.connection_socket:
@@ -741,6 +748,60 @@ def tcp_not_auth(tester):
     stderr = tester.get_stderr()
     assert any(
         ["ERR:" in line for line in stderr.split("\n")]
+    ), "Output does not match expected error message."
+
+
+@testcase
+def tcp_auth(tester):
+    tester.start_server("tcp", 4567)
+    tester.setup(args=["-t", "tcp", "-s", "localhost", "-p", "4567"])
+    tester.execute("/auth a b c")
+
+    message = tester.receive_message()
+    assert (
+        message == "AUTH a AS c USING b\r\n"
+    ), "Incoming message does not match expected AUTH message."
+
+
+@testcase
+def tcp_auth_ok(tester):
+    tester.start_server("tcp", 4567)
+    tester.setup(args=["-t", "tcp", "-s", "localhost", "-p", "4567"])
+    tester.execute("/auth a b c")
+
+    message = tester.receive_message()
+    assert (
+        message == "AUTH a AS c USING b\r\n"
+    ), "Incoming message does not match expected AUTH message."
+
+    tester.send_message("REPLY OK IS vsechno cajk\r\n")
+
+    sleep(0.2)
+
+    stderr = tester.get_stderr()
+    assert any(
+        ["Success: vsechno cajk" == line for line in stderr.split("\n")]
+    ), "Output does not match expected error message."
+
+
+@testcase
+def tcp_auth_nok(tester):
+    tester.start_server("tcp", 4567)
+    tester.setup(args=["-t", "tcp", "-s", "localhost", "-p", "4567"])
+    tester.execute("/auth a b c")
+
+    message = tester.receive_message()
+    assert (
+        message == "AUTH a AS c USING b\r\n"
+    ), "Incoming message does not match expected AUTH message."
+
+    tester.send_message("REPLY NOK IS nic cajk\r\n")
+
+    sleep(0.2)
+
+    stderr = tester.get_stderr()
+    assert any(
+        ["Failure: nic cajk" == line for line in stderr.split("\n")]
     ), "Output does not match expected error message."
 
 
