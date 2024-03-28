@@ -1,5 +1,4 @@
 *.dSYM/*
 bin/*
 python/*
-!python/testo.py
 venv/*
