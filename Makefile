@@ -37,6 +37,12 @@ run-only-tcp:
 test:
 	python3 python/testo.py bin/ipk24chat-client $(TEST_FLAGS)
 
+test-tcp:
+	python3 python/testo.py bin/ipk24chat-client $(TEST_FLAGS) -p tcp
+
+test-udp:
+	python3 python/testo.py bin/ipk24chat-client $(TEST_FLAGS) -p udp
+
 # Clean target
 clean:
 	rm -f $(TARGET)
