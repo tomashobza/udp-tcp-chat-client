@@ -96,9 +96,19 @@
     "generator.hpp": "cpp",
     "stack.hpp": "cpp",
     "netdb.hpp": "cpp",
-    "*.hpp": "c",
+    "*.hpp": "cpp",
     "execution": "cpp",
-    "csignal": "cpp"
+    "csignal": "cpp",
+    "udp_client.h": "c",
+    "string.h": "c",
+    "message_list.h": "c",
+    "inet.h": "c",
+    "input_worker.h": "c",
+    "tcp_client.h": "c",
+    "arg_parser.h": "c",
+    "time_mili.h": "c",
+    "stdbool.h": "c",
+    "regex": "cpp"
   },
   "C_Cpp_Runner.cCompilerPath": "clang",
   "C_Cpp_Runner.cppCompilerPath": "clang++",
@@ -160,5 +170,8 @@
     "activityBar.background": "#252C3E",
     "titleBar.activeBackground": "#343E57",
     "titleBar.activeForeground": "#F9FAFC"
-  }
+  },
+  "cSpell.enableFiletypes": [
+    "!python"
+  ]
 }

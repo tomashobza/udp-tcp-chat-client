@@ -269,7 +269,7 @@ State Automata::s_open()
                 }
                 break;
             case MessageType::MSG:
-                std::cout << postman->get_display_name() << ": " << res.message.contents << std::endl;
+                std::cout << res.message.display_name << ": " << res.message.contents << std::endl;
                 break;
             case MessageType::ERR:
                 std::cerr << "ERR FROM " << res.message.display_name << ": " << res.message.contents << std::endl;
