@@ -1,3 +1,13 @@
+/**
+ * @file Utils.hpp
+ * @author Tomáš Hobza (xhobza03)
+ * @brief Utils class for the project
+ * @date 2024-03-31
+ *
+ * @copyright Copyright (c) 2024
+ *
+ */
+
 #ifndef UTILS_H
 #define UTILS_H
 
@@ -9,6 +19,10 @@
 #include <poll.h>
 #include "types.hpp"
 
+/**
+ * @brief Utils class
+ *
+ */
 class Utils
 {
 public:

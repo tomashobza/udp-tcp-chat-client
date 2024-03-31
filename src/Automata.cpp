@@ -1,3 +1,13 @@
+/**
+ * @file Automata.cpp
+ * @author Tomáš Hobza (xhobza03)
+ * @brief Automata class for the project
+ * @date 2024-03-31
+ *
+ * @copyright Copyright (c) 2024
+ *
+ */
+
 #include "Automata.hpp"
 
 Automata::Automata(Args args)
@@ -15,8 +25,10 @@ Automata::Automata(Args args)
         break;
     }
 
+    // Attach the postman to the server
     postman->attach_to_server(args.hostname, args.port);
 
+    // Set the initial state
     state = S_START;
 };
 
@@ -69,6 +81,7 @@ State Automata::s_start()
     // Poll for messages
     PollResults results = postman->poll_for_messages();
 
+    // Handle the messages
     for (auto &res : results)
     {
         // Handle the user message
@@ -90,6 +103,7 @@ State Automata::s_start()
 
             case MessageType::ERR:
                 std::cerr << "ERR: " << res.message.contents << std::endl;
+                ret_code = EXIT_FAILURE;
                 set_state(S_END);
                 break;
 
@@ -130,6 +144,7 @@ State Automata::s_auth()
     // Poll for messages
     PollResults results = postman->poll_for_messages();
 
+    // Handle the messages
     for (auto &res : results)
     {
         if (res.type == PollResultType::USER)
@@ -148,6 +163,7 @@ State Automata::s_auth()
 
             case MessageType::ERR:
                 std::cerr << "ERR: " << res.message.contents << std::endl;
+                ret_code = EXIT_FAILURE;
                 set_state(S_END);
                 break;
 
@@ -163,6 +179,7 @@ State Automata::s_auth()
             switch (res.message.type)
             {
             case MessageType::REPLY:
+                // Check the result value validity
                 if (res.message.type == MessageType::REPLY && res.message.result == 1)
                 {
                     std::cerr << "Success: " << res.message.contents << std::endl;
@@ -177,6 +194,7 @@ State Automata::s_auth()
             case MessageType::ERR:
                 std::cerr << "ERR FROM " << res.message.display_name << ": " << res.message.contents << std::endl;
                 postman->bye();
+                ret_code = EXIT_FAILURE;
                 set_state(S_END);
                 break;
 
@@ -200,6 +218,7 @@ State Automata::s_open()
     // Poll for messages
     PollResults results = postman->poll_for_messages();
 
+    // Handle the messages
     for (auto &res : results)
     {
         if (res.type == PollResultType::USER)
@@ -223,6 +242,7 @@ State Automata::s_open()
 
             case MessageType::ERR:
                 std::cerr << "ERR: " << res.message.contents << std::endl;
+                ret_code = EXIT_FAILURE;
                 set_state(S_END);
                 break;
 
@@ -237,6 +257,7 @@ State Automata::s_open()
             switch (res.message.type)
             {
             case MessageType::REPLY:
+                // Check the result value validity
                 if (res.message.type == MessageType::REPLY && res.message.result == 1)
                 {
                     std::cerr << "Success: " << res.message.contents << std::endl;
@@ -252,6 +273,7 @@ State Automata::s_open()
             case MessageType::ERR:
                 std::cerr << "ERR FROM " << res.message.display_name << ": " << res.message.contents << std::endl;
                 postman->bye();
+                ret_code = EXIT_FAILURE;
                 set_state(S_END);
                 break;
             case MessageType::BYE:
@@ -280,6 +302,7 @@ State Automata::s_error()
     // Poll for messages
     PollResults results = postman->poll_for_messages();
 
+    // Handle the messages
     for (auto &res : results)
     {
         if (res.type == PollResultType::USER)
@@ -293,6 +316,7 @@ State Automata::s_error()
 
             case MessageType::ERR:
                 std::cerr << "ERR: " << res.message.contents << std::endl;
+                ret_code = EXIT_FAILURE;
                 set_state(S_END);
                 break;
 
@@ -310,6 +334,7 @@ State Automata::s_error()
             case MessageType::ERR:
                 std::cerr << "ERR FROM " << res.message.display_name << ": " << res.message.contents << std::endl;
                 postman->bye();
+                ret_code = EXIT_FAILURE;
                 set_state(S_END);
                 break;
             default:

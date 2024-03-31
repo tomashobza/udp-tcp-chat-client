@@ -1,5 +1,19 @@
+/**
+ * @file UdpPostman.hpp
+ * @author Tomáš Hobza (xhobza03)
+ * @brief UDP Postman class for the project
+ * @date 2024-03-31
+ *
+ * @copyright Copyright (c) 2024
+ *
+ */
+
 #include "Postman.hpp"
 
+/**
+ * @brief UDP Postman class
+ *
+ */
 class UDPPostman : public IPostman
 {
 private:
@@ -13,6 +27,10 @@ private:
     long long timestamp;
     /** First message flag */
     bool first_message = true;
+    /** Maximum number of CONFIRM retries */
+    uint8_t max_retries = 3;
+    /** Timeout for CONFIRM message */
+    long long max_timeout = 250;
 
 public:
     /**
@@ -58,5 +76,11 @@ public:
      */
     int confirm(MessageID ref_id);
 
+    /**
+     * @brief Update the confirm_waiters list.
+     *
+     * @return true - waiters were updated
+     * @return false - a waiter was expired
+     */
     bool check_waiters();
 };

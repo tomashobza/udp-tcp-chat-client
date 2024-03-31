@@ -1,3 +1,13 @@
+/**
+ * @file InputParser.cpp
+ * @author Tomáš Hobza (xhobza03)
+ * @brief Input parser for the project
+ * @date 2024-03-31
+ *
+ * @copyright Copyright (c) 2024
+ *
+ */
+
 #include "InputParser.hpp"
 
 Command InputParser::parse_input()
@@ -74,6 +84,7 @@ Command InputParser::parse_input()
     }
     else
     {
+        // Check if the message is empty
         if (input.size() == 0)
         {
             std::cerr << "ERR: empty message not allowed" << std::endl;
@@ -83,7 +94,7 @@ Command InputParser::parse_input()
         return Command{CMD_MSG, {input}};
     }
 
-help:
+help: // Help command
 
     // If the command is not recognized, print and return a help command
     std::cout << "\tAvailable commands:" << std::endl;

@@ -1,6 +1,20 @@
+/**
+ * @file TcpPostman.hpp
+ * @author Tomáš Hobza (xhobza03)
+ * @brief TCP Postman class for the project
+ * @date 2024-03-31
+ *
+ * @copyright Copyright (c) 2024
+ *
+ */
+
 #include "Postman.hpp"
 #include <regex>
 
+/**
+ * @brief TCP Postman class
+ *
+ */
 class TCPPostman : public IPostman
 {
 public:

@@ -1,3 +1,13 @@
+/**
+ * @file UdpPostman.cpp
+ * @author Tomáš Hobza (xhobza03)
+ * @brief UDP Postman class for the project
+ * @date 2024-03-31
+ *
+ * @copyright Copyright (c) 2024
+ *
+ */
+
 #include "UdpPostman.hpp"
 
 /** Had SIGINT flag */
@@ -7,12 +17,18 @@ void UDPPostman::udp_handle_sigint(int signal)
 {
     if (signal == SIGINT)
     {
+        // Set the flag
         udp_had_sigint = true;
     }
 }
 
 UDPPostman::UDPPostman(Args args)
 {
+    // Set the display name
+    max_retries = args.max_tries;
+    max_timeout = args.timeout;
+
+    // Register the SIGINT signal handler
     std::signal(SIGINT, UDPPostman::udp_handle_sigint);
 
     // Create the client socket
@@ -22,12 +38,13 @@ UDPPostman::UDPPostman(Args args)
         throw std::runtime_error("ERROR opening socket");
     }
 
-    // Attach to the server
+    // Attach client to the server
     this->attach_to_server(args.hostname, args.port);
 }
 
 UDPPostman::~UDPPostman()
 {
+    // Close the client socket
     close(client_socket);
 }
 
@@ -80,8 +97,9 @@ int UDPPostman::authorize(const std::string &username, const std::string &displa
     }
 
     // Push the message to the queue of messages to be confirmed
-    confirm_waiters.push_back(ConfirmWaiter{MSG_MAX_RETRIES, Utils::get_timestamp() + MSG_TIMEOUT, (MessageID)msg_id, data});
+    confirm_waiters.push_back(ConfirmWaiter{max_retries, Utils::get_timestamp() + max_timeout, (MessageID)msg_id, data});
 
+    // Save the last sent message
     last_sent_message = Message{};
     last_sent_message.type = MessageType::AUTH;
     last_sent_message.id = msg_id;
@@ -123,8 +141,9 @@ int UDPPostman::join(const std::string &channel_id, const std::string &display_n
     }
 
     // Push the message to the queue of messages to be confirmed
-    confirm_waiters.push_back(ConfirmWaiter{MSG_MAX_RETRIES, Utils::get_timestamp() + MSG_TIMEOUT, (MessageID)msg_id, data});
+    confirm_waiters.push_back(ConfirmWaiter{max_retries, Utils::get_timestamp() + max_timeout, (MessageID)msg_id, data});
 
+    // Save the last sent message
     last_sent_message = Message{};
     last_sent_message.type = MessageType::JOIN;
     last_sent_message.id = msg_id;
@@ -166,8 +185,9 @@ int UDPPostman::message(const std::string &display_name, const std::string &mess
     }
 
     // Push the message to the queue of messages to be confirmed
-    confirm_waiters.push_back(ConfirmWaiter{MSG_MAX_RETRIES, Utils::get_timestamp() + MSG_TIMEOUT, (MessageID)msg_id, data});
+    confirm_waiters.push_back(ConfirmWaiter{max_retries, Utils::get_timestamp() + max_timeout, (MessageID)msg_id, data});
 
+    // Save the last sent message
     last_sent_message = Message{};
     last_sent_message.type = MessageType::MSG;
     last_sent_message.id = msg_id;
@@ -212,8 +232,9 @@ int UDPPostman::error(const std::string &display_name, const std::string &messag
     }
 
     // Push the message to the queue of messages to be confirmed
-    confirm_waiters.push_back(ConfirmWaiter{MSG_MAX_RETRIES, Utils::get_timestamp() + MSG_TIMEOUT, (MessageID)msg_id, data});
+    confirm_waiters.push_back(ConfirmWaiter{max_retries, Utils::get_timestamp() + max_timeout, (MessageID)msg_id, data});
 
+    // Save the last sent message
     last_sent_message = Message{};
     last_sent_message.type = MessageType::ERR;
     last_sent_message.id = msg_id;
@@ -249,8 +270,9 @@ int UDPPostman::bye()
     }
 
     // Push the message to the queue of messages to be confirmed
-    confirm_waiters.push_back(ConfirmWaiter{MSG_MAX_RETRIES, Utils::get_timestamp() + MSG_TIMEOUT, (MessageID)msg_id, data});
+    confirm_waiters.push_back(ConfirmWaiter{max_retries, Utils::get_timestamp() + max_timeout, (MessageID)msg_id, data});
 
+    // Save the last sent message
     last_sent_message = Message{};
     last_sent_message.type = MessageType::BYE;
     last_sent_message.id = msg_id;
@@ -313,6 +335,7 @@ int UDPPostman::confirm(MessageID ref_id)
 
 PollResults UDPPostman::poll_for_messages()
 {
+    // Initialize the results
     PollResults results;
 
     // Check if the user has pressed Ctrl+C
@@ -431,11 +454,13 @@ PollResults UDPPostman::poll_for_messages()
 
 PollResults UDPPostman::handle_user_command()
 {
+    // Initialize the results
     PollResults results;
 
     // Parse the input
     Command cmd = InputParser::parse_input();
 
+    // Check if the command is allowed in this state
     bool is_allowed = std::find(allowed_client_commands.begin(), allowed_client_commands.end(), cmd.type) != allowed_client_commands.end();
 
     if (!is_allowed)
@@ -455,6 +480,8 @@ PollResults UDPPostman::handle_user_command()
             auth_msg.username = cmd.args[0];
             auth_msg.password = cmd.args[1];
             auth_msg.display_name = cmd.args[2];
+
+            // Add the message to the results
             results.push_back(PollResult{
                 PollResultType::USER,
                 auth_msg});
@@ -471,6 +498,7 @@ PollResults UDPPostman::handle_user_command()
             join_msg.display_name = display_name;
             join_msg.channel_id = cmd.args[0];
 
+            // Add the message to the results
             results.push_back(PollResult{
                 PollResultType::USER,
                 join_msg});
@@ -486,6 +514,8 @@ PollResults UDPPostman::handle_user_command()
             msg_msg.id = msg_id;
             msg_msg.display_name = display_name;
             msg_msg.contents = cmd.args[0];
+
+            // Add the message to the results
             results.push_back(PollResult{
                 PollResultType::USER,
                 msg_msg});
@@ -501,6 +531,7 @@ PollResults UDPPostman::handle_user_command()
 
 PollResults UDPPostman::handle_server_message()
 {
+    // Initialize the results
     PollResults results;
 
     // Receive the message
@@ -522,6 +553,7 @@ PollResults UDPPostman::handle_server_message()
     // Add the message to the results if it is not a confirmation or an unknown message
     if ((is_contentful && is_new) || is_unknown)
     {
+        // Add the message to the results
         results.push_back(PollResult{
             PollResultType::SERVER,
             msg});
@@ -539,6 +571,7 @@ Message UDPPostman::receive()
     size_t maxBufferSize = 1024; // Adjust this size according to your needs
     std::vector<uint8_t> *buffer = new std::vector<uint8_t>(maxBufferSize);
 
+    // Set up the server address
     sockaddr new_server_address;
     socklen_t new_server_address_len = sizeof(server_address);
 
@@ -591,13 +624,24 @@ Message UDPPostman::receive()
             // Update the waiting flag
             is_waiting_for_reply = false;
         }
-        else
+        else if (last_sent_message.type == MessageType::AUTH || last_sent_message.type == MessageType::JOIN)
         {
             std::cerr << "ERR: Wrong reply RefID!" << std::endl;
 
             delete buffer; // Important to avoid memory leaks
             Message unknown;
             unknown.type = MessageType::UNKNOWN;
+            unknown.id = msg.id;
+            return unknown;
+        }
+        else
+        {
+            std::cerr << "ERR: Reply for non-reply-able message!" << std::endl;
+
+            delete buffer; // Important to avoid memory leaks
+            Message unknown;
+            unknown.type = MessageType::UNKNOWN;
+            unknown.id = msg.id;
             return unknown;
         }
     }
@@ -619,6 +663,7 @@ void UDPPostman::allow_client_commands(std::vector<CommandType> messages)
 
 Message UDPPostman::data_to_message(std::vector<uint8_t> data)
 {
+    // Check if the data is empty
     if (data.size() < 1)
     {
         Message unknown;
@@ -626,7 +671,10 @@ Message UDPPostman::data_to_message(std::vector<uint8_t> data)
         return unknown;
     }
 
+    // Get the message type
     MessageType type = (MessageType)data.at(0);
+
+    // Check if the message is complete and parse it
     switch (type)
     {
     case MessageType::CONFIRM:
@@ -634,6 +682,8 @@ Message UDPPostman::data_to_message(std::vector<uint8_t> data)
         Message msg;
         msg.type = MessageType::CONFIRM;
         msg.ref_id = data.at(1) << 8 | data.at(2);
+
+        // Check if the message is complete
         if (data.size() != 3)
         {
             std::cerr << "ERR: CONFIRM message not complete!" << std::endl;
@@ -651,6 +701,8 @@ Message UDPPostman::data_to_message(std::vector<uint8_t> data)
         msg.result = data.at(3);
         msg.ref_id = data.at(4) << 8 | data.at(5);
         msg.contents = std::string(data.begin() + BEG_OFFSET + STR_OFFSET + sizeof(MessageID), data.end());
+
+        // Remove the null terminator if it is present
         if (msg.contents.at(msg.contents.size() - 1) == '\0')
         {
             msg.contents.pop_back();
@@ -693,6 +745,7 @@ Message UDPPostman::data_to_message(std::vector<uint8_t> data)
             i++;
         }
 
+        // Check if the message is complete
         if (msg.username.size() == 0 || msg.display_name.size() == 0 || msg.password.size() == 0 || data.at(i) != 0)
         {
             std::cerr << "ERR: AUTH message has empty fields or wrong NULL termination!" << std::endl;
@@ -726,6 +779,7 @@ Message UDPPostman::data_to_message(std::vector<uint8_t> data)
             i++;
         }
 
+        // Check if the message is complete
         if (msg.channel_id.size() == 0 || msg.display_name.size() == 0 || data.at(i) != 0)
         {
             std::cerr << "ERR: JOIN message has empty fields or wrong NULL termination!" << std::endl;
@@ -759,6 +813,7 @@ Message UDPPostman::data_to_message(std::vector<uint8_t> data)
             i++;
         }
 
+        // Check if the message is complete
         if (msg.display_name.size() == 0 || msg.contents.size() == 0 || data.at(i) != 0)
         {
             std::cerr << "ERR: MSG message has empty fields or wrong NULL termination!" << std::endl;
@@ -792,6 +847,7 @@ Message UDPPostman::data_to_message(std::vector<uint8_t> data)
             i++;
         }
 
+        // Check if the message is complete
         if (msg.display_name.size() == 0 || msg.contents.size() == 0 || data.at(i) != 0)
         {
             std::cerr << "ERR: ERR message has empty fields or wrong NULL termination!" << std::endl;
@@ -812,6 +868,8 @@ Message UDPPostman::data_to_message(std::vector<uint8_t> data)
         Message msg;
         msg.type = MessageType::BYE;
         msg.id = data.at(1) << 8 | data.at(2);
+
+        // Check if the message is complete
         if (data.size() != 3)
         {
             std::cerr << "ERR: BYE message not complete!" << std::endl;
@@ -826,6 +884,8 @@ Message UDPPostman::data_to_message(std::vector<uint8_t> data)
         Message unknown;
         unknown.type = MessageType::UNKNOWN;
         unknown.id = data.at(1) << 8 | data.at(2);
+
+        // Check if the message is complete
         if (data.size() > 3)
         {
             unknown.id = data.at(1) << 8 | data.at(2);
@@ -833,13 +893,20 @@ Message UDPPostman::data_to_message(std::vector<uint8_t> data)
         return unknown;
     }
 
+    // Return an unknown message if the message type is not recognized
     Message unknown;
     unknown.type = MessageType::UNKNOWN;
+    // Try to get the ID if it is present
+    if (data.size() > 3)
+    {
+        unknown.id = data.at(1) << 8 | data.at(2);
+    }
     return unknown;
 }
 
 bool UDPPostman::check_waiters()
 {
+    // If there are no messages to confirm, return true
     if (confirm_waiters.empty())
     {
         return true;
@@ -866,7 +933,7 @@ bool UDPPostman::check_waiters()
                 }
 
                 // Reset the timer and decrement the number of tries
-                it->expiration = timestamp + MSG_TIMEOUT;
+                it->expiration = timestamp + max_timeout;
                 it->tries_left--;
             }
             else

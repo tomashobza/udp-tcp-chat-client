@@ -1,3 +1,13 @@
+/**
+ * @file types.hpp
+ * @author Tomáš Hobza (xhobza03)
+ * @brief Combined types for the project
+ * @date 2024-03-31
+ *
+ * @copyright Copyright (c) 2024
+ *
+ */
+
 #ifndef TYPES_H
 #define TYPES_H
 
@@ -5,8 +15,11 @@
 #include <string>
 #include <vector>
 #include "constants.hpp"
-#include "Colors.hpp"
 
+/**
+ * @brief Enum for message types
+ *
+ */
 enum MessageTypeEnum : uint8_t
 {
     CONFIRM = 0x00,
@@ -18,54 +31,20 @@ enum MessageTypeEnum : uint8_t
     BYE = 0xFF,
     UNKNOWN = 0x05
 };
+/**
+ * @brief Enum for message types
+ */
 typedef enum MessageTypeEnum MessageType;
 
+/**
+ * @brief Message ID
+ *
+ */
 typedef uint16_t MessageID;
 
-/// Message contents ///
-typedef struct
-{
-    MessageID ref_id;
-} ConfirmMessage;
-
-typedef struct
-{
-    MessageID ref_id;
-    uint8_t reply;
-    std::string contents;
-} ReplyMessage;
-
-typedef struct
-{
-    std::string username;
-    std::string display_name;
-    std::string password;
-} AuthMessage;
-
-typedef struct
-{
-    std::string channel_id;
-    std::string display_name;
-} JoinMessage;
-
-typedef struct
-{
-    std::string display_name;
-    std::string contents;
-} MsgMessage;
-
-typedef struct
-{
-    std::string display_name;
-    std::string contents;
-} ErrMessage;
-
-typedef struct
-{
-} ByeMessage;
-
-/// /////////////////// ///
-
+/**
+ * @brief Complete Message structure
+ */
 struct IMessage
 {
     MessageType type;
@@ -78,9 +57,16 @@ struct IMessage
     std::string channel_id;
     std::string contents;
 };
-
+/**
+ * @brief Message structure
+ *
+ */
 typedef struct IMessage Message;
 
+/**
+ * @brief Confirm waiter structure for waiting for confirmations
+ *
+ */
 struct ConfirmWaiter
 {
     uint8_t tries_left;
@@ -89,12 +75,20 @@ struct ConfirmWaiter
     std::vector<uint8_t> data;
 };
 
+/**
+ * @brief Enum for protocol types
+ *
+ */
 typedef enum
 {
     TCP,
     UDP
 } Protocol;
 
+/**
+ * @brief Arguments structure
+ *
+ */
 typedef struct
 {
     Protocol type;
@@ -104,6 +98,10 @@ typedef struct
     uint8_t max_tries;
 } Args;
 
+/**
+ * @brief Enum for states of the Automata
+ *
+ */
 typedef enum
 {
     S_START,
@@ -113,20 +111,36 @@ typedef enum
     S_END
 } State;
 
+/**
+ * @brief Enum for the result types of message polling
+ *
+ */
 typedef enum
 {
     USER,
     SERVER,
 } PollResultType;
 
+/**
+ * @brief Poll result structure for message polling
+ *
+ */
 typedef struct
 {
     PollResultType type;
     Message message;
 } PollResult;
 
+/**
+ * @brief Poll results vector
+ *
+ */
 typedef std::vector<PollResult> PollResults;
 
+/**
+ * @brief Command type enum
+ *
+ */
 typedef enum
 {
     CMD_AUTH,
@@ -136,6 +150,10 @@ typedef enum
     CMD_HELP
 } CommandType;
 
+/**
+ * @brief Command structure
+ *
+ */
 typedef struct
 {
     CommandType type;

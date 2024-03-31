@@ -1,5 +1,5 @@
 CXX=g++-13
-CXXFLAGS=-std=c++20 -Wall -Wextra -pedantic -g
+CXXFLAGS=-std=c++20 -Wall -Wextra -pedantic
 
 # Define the target executable
 TARGET=ipk24chat-client
@@ -10,6 +10,7 @@ SOURCES=$(wildcard src/*.cpp)
 TEST_FLAGS=
 ifeq ($(DEBUG), true)
 	TEST_FLAGS=-d
+	CXXFLAGS=-std=c++20 -Wall -Wextra -pedantic -g
 endif
 
 .PHONY: main run clean server

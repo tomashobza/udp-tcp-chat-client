@@ -1,3 +1,13 @@
+/**
+ * @file Postman.cpp
+ * @author Tomáš Hobza (xhobza03)
+ * @brief Postman class for the project
+ * @date 2024-03-31
+ *
+ * @copyright Copyright (c) 2024
+ *
+ */
+
 #include "Postman.hpp"
 
 int IPostman::get_client_socket()

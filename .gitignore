@@ -3,3 +3,4 @@ bin/*
 python/*
 venv/*
 ipk24chat-client
+ipk24chat-client.dSYM/** */

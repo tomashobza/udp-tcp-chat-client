@@ -1,3 +1,13 @@
+/**
+ * @file TcpPostman.cpp
+ * @author Tomáš Hobza (xhobza03)
+ * @brief TCP Postman class for the project
+ * @date 2024-03-31
+ *
+ * @copyright Copyright (c) 2024
+ *
+ */
+
 #include "TcpPostman.hpp"
 
 /** Had SIGINT flag */
@@ -7,12 +17,14 @@ void TCPPostman::tcp_handle_sigint(int signal)
 {
     if (signal == SIGINT)
     {
+        // Set the flag
         tcp_had_sigint = true;
     }
 }
 
 TCPPostman::TCPPostman(Args args)
 {
+    // Register the SIGINT handler
     std::signal(SIGINT, TCPPostman::tcp_handle_sigint);
 
     // Create the socket
@@ -34,6 +46,7 @@ TCPPostman::TCPPostman(Args args)
 
 TCPPostman::~TCPPostman()
 {
+    // Close the socket
     close(client_socket);
 }
 
@@ -74,6 +87,7 @@ int TCPPostman::authorize(const std::string &username, const std::string &displa
         throw std::runtime_error("ERROR sending AUTH message");
     }
 
+    // Save the last sent message
     last_sent_message = Message{};
     last_sent_message.type = MessageType::AUTH;
     last_sent_message.username = username;
@@ -100,6 +114,7 @@ int TCPPostman::join(const std::string &channel_id, const std::string &display_n
         throw std::runtime_error("ERROR sending JOIN message");
     }
 
+    // Save the last sent message
     last_sent_message = Message{};
     last_sent_message.type = MessageType::JOIN;
     last_sent_message.channel_id = channel_id;
@@ -125,6 +140,7 @@ int TCPPostman::message(const std::string &display_name, const std::string &mess
         throw std::runtime_error("ERROR sending MSG message");
     }
 
+    // Save the last sent message
     last_sent_message = Message{};
     last_sent_message.type = MessageType::MSG;
     last_sent_message.display_name = display_name;
@@ -147,6 +163,7 @@ int TCPPostman::error(const std::string &display_name, const std::string &messag
         throw std::runtime_error("ERROR sending MSG message");
     }
 
+    // Save the last sent message
     last_sent_message = Message{};
     last_sent_message.type = MessageType::ERR;
     last_sent_message.display_name = display_name;
@@ -169,6 +186,7 @@ int TCPPostman::bye()
         throw std::runtime_error("ERROR sending BYE message");
     }
 
+    // Save the last sent message
     last_sent_message = Message{};
     last_sent_message.type = MessageType::BYE;
 
@@ -177,6 +195,7 @@ int TCPPostman::bye()
 
 PollResults TCPPostman::poll_for_messages()
 {
+    // Create a vector to store the results
     PollResults results;
 
     // Check if the user has pressed Ctrl+C
@@ -239,10 +258,14 @@ PollResults TCPPostman::poll_for_messages()
         }
         else
         {
+            // If stdin is not closed, put the byte back
             ungetc(c, stdin);
         }
 
+        // Handle the user command
         PollResults usr_res = handle_user_command();
+
+        // Add the user results to the results vector
         for (auto &res : usr_res)
         {
             results.push_back(res);
@@ -252,7 +275,10 @@ PollResults TCPPostman::poll_for_messages()
     // If socket has data
     if (fds[1].revents & POLLIN)
     {
+        // Handle the server message
         PollResults srvr_res = handle_server_message();
+
+        // Add the server results to the results vector
         for (auto &res : srvr_res)
         {
             results.push_back(res);
@@ -264,13 +290,16 @@ PollResults TCPPostman::poll_for_messages()
 
 PollResults TCPPostman::handle_user_command()
 {
+    // Create a vector to store the results
     PollResults results;
 
     // Parse the input
     Command cmd = InputParser::parse_input();
 
+    // Check if the command is allowed in this state
     bool is_allowed = std::find(allowed_client_commands.begin(), allowed_client_commands.end(), cmd.type) != allowed_client_commands.end();
 
+    // If the command is not allowed, print an error message
     if (!is_allowed)
     {
         std::cerr << "ERR: Command not allowed in this state!" << std::endl;
@@ -287,10 +316,13 @@ PollResults TCPPostman::handle_user_command()
             auth_msg.username = cmd.args[0];
             auth_msg.password = cmd.args[1];
             auth_msg.display_name = cmd.args[2];
+
+            // Add the message to the results
             results.push_back(PollResult{
                 PollResultType::USER,
                 auth_msg});
 
+            // Change the display name
             display_name = cmd.args[2];
 
             break;
@@ -302,12 +334,14 @@ PollResults TCPPostman::handle_user_command()
             join_msg.display_name = display_name;
             join_msg.channel_id = cmd.args[0];
 
+            // Add the message to the results
             results.push_back(PollResult{
                 PollResultType::USER,
                 join_msg});
             break;
         }
         case CommandType::CMD_RENAME:
+            // Change the display name
             display_name = cmd.args[0];
             break;
         case CommandType::CMD_MSG:
@@ -316,6 +350,8 @@ PollResults TCPPostman::handle_user_command()
             msg_msg.type = MessageType::MSG;
             msg_msg.display_name = display_name;
             msg_msg.contents = cmd.args[0];
+
+            // Add the message to the results
             results.push_back(PollResult{
                 PollResultType::USER,
                 msg_msg});
@@ -331,6 +367,7 @@ PollResults TCPPostman::handle_user_command()
 
 PollResults TCPPostman::handle_server_message()
 {
+    // Create a vector to store the results
     PollResults results;
 
     // Receive the message

@@ -1,7 +1,18 @@
+/**
+ * @file Utils.cpp
+ * @author Tomáš Hobza (xhobza03)
+ * @brief Utility functions for the project
+ * @date 2024-03-31
+ *
+ * @copyright Copyright (c) 2024
+ *
+ */
+
 #include "Utils.hpp"
 
 long long Utils::get_timestamp()
 {
+    // Get the current time since epoch in milliseconds
     return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 }
 

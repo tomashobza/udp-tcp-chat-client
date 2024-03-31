@@ -1,12 +1,25 @@
+/**
+ * @file ArgParser.cpp
+ * @author Tomáš Hobza (xhobza03)
+ * @brief Argument parser for the project
+ * @date 2024-03-31
+ *
+ * @copyright Copyright (c) 2024
+ *
+ */
+
 #include "ArgParser.hpp"
 
 Args ArgParser::parse(int argc, char *argv[])
 {
+    // Default arguments
     Args args = {Protocol::TCP, "localhost", 4567, 250, 3};
 
+    // Flags for required arguments
     bool has_hostname = false;
     bool has_type = false;
 
+    // Parse the arguments
     int opt;
     while ((opt = getopt(argc, argv, "ht:s:p:d:r:")) != -1)
     {

@@ -1,3 +1,13 @@
+/**
+ * @file Postman.hpp
+ * @author Tomáš Hobza (xhobza03)
+ * @brief Postman class for the project
+ * @date 2024-03-31
+ *
+ * @copyright Copyright (c) 2024
+ *
+ */
+
 #ifndef POSTMAN_H
 #define POSTMAN_H
 
@@ -22,6 +32,10 @@
 
 extern bool tcp_had_sigint;
 
+/**
+ * @brief Postman interface
+ *
+ */
 class IPostman
 {
 protected:
@@ -123,14 +137,40 @@ public:
      */
     virtual PollResults poll_for_messages() = 0;
 
+    /**
+     * @brief Receive a message from the server.
+     *
+     * @return Message - the received message parsed into a Message object
+     */
     virtual Message receive() = 0;
 
-    // TODO: add comments
+    /**
+     * @brief Set what client commands are allowed.
+     *
+     * @param messages the list of allowed client commands
+     */
     virtual void allow_client_commands(std::vector<CommandType> messages) = 0;
 
+    /**
+     * @brief Handle an incoming server message.
+     *
+     * @return PollResults - an array of PollResults (server message, user command)
+     */
     virtual PollResults handle_server_message() = 0;
+
+    /**
+     * @brief Handle a user command.
+     *
+     * @return PollResults - an array of PollResults (server message, user command)
+     */
     virtual PollResults handle_user_command() = 0;
 
+    /**
+     * @brief Parse a raw message into a Message object.
+     *
+     * @param data the raw message data
+     * @return Message - the parsed message
+     */
     virtual Message data_to_message(std::vector<uint8_t> data) = 0;
 };
 

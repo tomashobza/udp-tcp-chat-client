@@ -1,3 +1,13 @@
+/**
+ * @file Automata.hpp
+ * @author Tomáš Hobza (xhobza03)
+ * @brief Header file for the Automata class
+ * @date 2024-03-31
+ *
+ * @copyright Copyright (c) 2024
+ *
+ */
+
 #ifndef AUTOMATA_H
 #define AUTOMATA_H
 
@@ -6,6 +16,9 @@
 #include "UdpPostman.hpp"
 #include "TcpPostman.hpp"
 
+/**
+ * @brief The Automata class
+ */
 class Automata
 {
 private:
@@ -13,6 +26,8 @@ private:
     IPostman *postman;
     /** The current state of the automata */
     State state = S_START;
+    /** Return code */
+    int ret_code = EXIT_SUCCESS;
 
 public:
     Automata(Args args);
@@ -65,8 +80,10 @@ public:
 
     /**
      * @brief Run the FSM.
+     *
+     * @return int - the return code
      */
-    void run();
+    int run();
 };
 
 #endif // AUTOMATA_H
