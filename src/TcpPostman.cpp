@@ -82,7 +82,6 @@ int TCPPostman::authorize(const std::string &username, const std::string &displa
 
     // Disable user input after joining a channel until a reply is received
     is_waiting_for_reply = true;
-    std::cout << FBLU("Waiting for reply...") << std::endl;
 
     return 0;
 }
@@ -108,7 +107,6 @@ int TCPPostman::join(const std::string &channel_id, const std::string &display_n
 
     // Disable user input after joining a channel until a reply is received
     is_waiting_for_reply = true;
-    std::cout << FBLU("Waiting for reply...") << std::endl;
 
     return 0;
 }
@@ -231,7 +229,6 @@ PollResults TCPPostman::poll_for_messages()
         ssize_t bytesRead = read(0, &c, 1);
         if (bytesRead <= 0)
         {
-            std::cout << "EOF" << std::endl;
             is_waiting_for_reply = false;
             // Send the BYE message
             PollResult res;
@@ -394,7 +391,6 @@ Message TCPPostman::receive()
 
         // Update the waiting flag
         is_waiting_for_reply = false;
-        std::cout << FBLU("Got reply!") << std::endl;
     }
 
     return msg;

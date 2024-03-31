@@ -22,24 +22,6 @@ UDPPostman::UDPPostman(Args args)
         throw std::runtime_error("ERROR opening socket");
     }
 
-    // Optionally bind the client to a specific port
-    sockaddr_in client_addr;
-    memset(&client_addr, 0, sizeof(client_addr));
-    client_addr.sin_family = AF_INET;
-    client_addr.sin_addr.s_addr = htonl(INADDR_ANY); // Listen on any IP address
-    client_addr.sin_port = htons(3000);              // Specific port to bind
-
-    if (bind(client_socket, (struct sockaddr *)&client_addr, sizeof(client_addr)) < 0)
-    {
-        std::cerr << "ERROR binding to port 3000: " << std::strerror(errno) << std::endl;
-        // Decide how to handle the error; throw an exception or handle gracefully
-        throw std::runtime_error("ERROR binding to port 3000");
-    }
-    else
-    {
-        std::cout << "Client socket bound to port 3000" << std::endl;
-    }
-
     // Attach to the server
     this->attach_to_server(args.hostname, args.port);
 }
@@ -112,7 +94,6 @@ int UDPPostman::authorize(const std::string &username, const std::string &displa
 
     // Disable user input after joining a channel until a reply is received
     is_waiting_for_reply = true;
-    std::cout << FBLU("Waiting for reply...") << std::endl;
 
     return 0;
 }
@@ -155,7 +136,6 @@ int UDPPostman::join(const std::string &channel_id, const std::string &display_n
 
     // Disable user input after joining a channel until a reply is received
     is_waiting_for_reply = true;
-    std::cout << FBLU("Waiting for reply...") << std::endl;
 
     return 0;
 }
@@ -308,8 +288,6 @@ int UDPPostman::confirm()
 
 int UDPPostman::confirm(MessageID ref_id)
 {
-    std::clog << "> CONFIRM " << ref_id << std::endl;
-
     // get the message data size
     size_t data_len = BEG_OFFSET;
 
@@ -417,7 +395,6 @@ PollResults UDPPostman::poll_for_messages()
         ssize_t bytesRead = read(0, &c, 1);
         if (bytesRead <= 0)
         {
-            std::cout << "EOF" << std::endl;
             is_waiting_for_reply = false;
             // Send the BYE message
             PollResult res;
@@ -594,7 +571,6 @@ Message UDPPostman::receive()
                 if (it->id == msg.ref_id)
                 {
                     confirm_waiters.erase(it);
-                    std::clog << FGRN("CONFIRMED ") << msg.ref_id << std::endl;
                     break;
                 }
             }
@@ -614,7 +590,6 @@ Message UDPPostman::receive()
 
             // Update the waiting flag
             is_waiting_for_reply = false;
-            std::cout << FBLU("Got reply!") << std::endl;
         }
         else
         {
@@ -850,7 +825,6 @@ Message UDPPostman::data_to_message(std::vector<uint8_t> data)
     default:
         Message unknown;
         unknown.type = MessageType::UNKNOWN;
-        std::cout << "msg id: " << (int)data.at(1) << std::endl;
         unknown.id = data.at(1) << 8 | data.at(2);
         if (data.size() > 3)
         {
@@ -883,8 +857,6 @@ bool UDPPostman::check_waiters()
             // If the waiter has tries left, resend the message
             if (it->tries_left > 0)
             {
-                std::clog << FBLU("resending message: ") << (int)it->id << std::endl;
-
                 // Send the message
                 ssize_t n = sendto(this->get_client_socket(), it->data.data(), it->data.size(), 0, (struct sockaddr *)&server_address, sizeof(server_address));
                 // Check for errors

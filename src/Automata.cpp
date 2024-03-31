@@ -25,32 +25,10 @@ Automata::~Automata(){};
 State Automata::set_state(State new_state)
 {
     state = new_state;
-    std::clog << "\033[0;33m#";
-    switch (state)
-    {
-    case S_START:
-        std::clog << " S_START";
-        break;
-    case S_AUTH:
-        std::clog << " S_AUTH";
-        break;
-    case S_OPEN:
-        std::clog << " S_OPEN";
-        break;
-    case S_ERROR:
-        std::clog << " S_ERROR";
-        break;
-    case S_END:
-        std::clog << " S_END";
-        break;
-    default:
-        break;
-    }
-    std::clog << "\033[0m" << std::endl;
     return state;
 };
 
-void Automata::run()
+int Automata::run()
 {
 
     // Run the automata
@@ -72,7 +50,7 @@ void Automata::run()
             break;
         case S_END:
             s_end();
-            return;
+            return ret_code;
             break;
         default:
             s_error();
@@ -80,7 +58,7 @@ void Automata::run()
         }
     }
 
-    return;
+    return EXIT_FAILURE;
 };
 
 State Automata::s_start()
@@ -249,7 +227,7 @@ State Automata::s_open()
                 break;
 
             default:
-                std::cerr << "Unexpected user command!" << std::endl;
+                std::cerr << "ERR: Unexpected user command!" << std::endl;
                 set_state(S_ERROR);
                 break;
             }
@@ -293,6 +271,9 @@ State Automata::s_open()
 
 State Automata::s_error()
 {
+    // Set the return code
+    ret_code = EXIT_FAILURE;
+
     // Set allowed inputs from the user and server
     postman->allow_client_commands({});
 
@@ -345,6 +326,5 @@ State Automata::s_error()
 
 State Automata::s_end()
 {
-    std::cout << "Goodbye!" << std::endl;
     return S_END;
 }

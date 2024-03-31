@@ -8,7 +8,5 @@ int main(int argc, char *argv[])
 
     Automata fsm(args);
 
-    fsm.run();
-
-    exit(EXIT_SUCCESS);
+    return fsm.run();
 }
