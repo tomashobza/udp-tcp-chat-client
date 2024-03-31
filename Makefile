@@ -13,7 +13,7 @@ ifeq ($(DEBUG), true)
 	CXXFLAGS=-std=c++20 -Wall -Wextra -pedantic -g
 endif
 
-.PHONY: main run clean server
+.PHONY: main run clean server docs diagrams
 
 # Main target
 main: $(SOURCES)
@@ -43,6 +43,12 @@ test-tcp:
 
 test-udp:
 	python3 tests/testo.py ./$(TARGET) $(TEST_FLAGS) -p udp
+
+docs:
+	doxygen Doxyfile
+
+diagrams:
+	plantuml -tsvg -o ./ docs/*.puml
 
 # Clean target
 clean:

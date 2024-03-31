@@ -1,0 +1,37 @@
+@startuml main_sequence_diagram
+actor User
+participant "main" as Main
+participant "ArgParser" as ArgParser
+participant "Automata" as Automata
+participant "IPostman" as IPostman
+participant "UDPPostman/TCPPostman" as Postman
+
+User -> Main: Execute program
+Main -> ArgParser: parse(argc, argv)
+ArgParser -> Main: Args
+Main -> Automata: new Automata(args)
+Automata -> Postman: new UDPPostman(args)\n or new TCPPostman(args)
+Automata -> Postman: attach_to_server(args.hostname, args.port)
+Automata -> Automata: Set initial state (S_START)
+
+loop Finite State Machine
+    Automata -> Automata: run()
+    alt S_START
+        Automata -> Automata: s_start()
+    else S_AUTH
+        Automata -> Automata: s_auth()
+    else S_OPEN
+        Automata -> Automata: s_open()
+    else S_ERROR
+        Automata -> Automata: s_error()
+    else S_END
+        Automata -> Automata: s_end()
+        Automata -> Main: return ret_code
+        break
+    else default
+        Automata -> Automata: s_error()
+    end
+end
+
+Main -> User: Exit program (ret_code)
+@enduml

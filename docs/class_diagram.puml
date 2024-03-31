@@ -1,0 +1,94 @@
+@startuml class_diagram
+
+skinparam linetype polyline
+
+class ArgParser {
+    +parse(argc: int, argv: char*[]): Args
+}
+
+class Automata {
+    -postman: IPostman*
+    -state: State
+    -ret_code: int
+    +Automata(args: Args)
+    +~Automata()
+    +set_state(new_state: State): State
+    +s_start(): State
+    +s_auth(): State
+    +s_open(): State
+    +s_error(): State
+    +s_end(): State
+    +run(): int
+}
+
+class InputParser {
+    +parse_input(): Command
+}
+
+interface IPostman {
+    +get_client_socket(): int
+    +get_server_address(): struct sockaddr_in
+    +get_display_name(): string
+    +attach_to_server(server_hostname: string, port_number: uint16_t): void
+    +authorize(username: string, display_name: string, password: string): int
+    +join(channel_id: string, DisplayName: string): int
+    +message(display_name: string, message_contents: string): int
+    +error(display_name: string, message_contents: string): int
+    +bye(): int
+    +poll_for_messages(): PollResults
+    +receive(): Message
+    +allow_client_commands(messages: vector<CommandType>): void
+    +handle_server_message(): PollResults
+    +handle_user_command(): PollResults
+    +data_to_message(data: vector<uint8_t>): Message
+}
+
+class TCPPostman {
+    +tcp_handle_sigint(signal: int): void
+    +TCPPostman(args: Args)
+    +~TCPPostman()
+    +get_display_name(): string
+    +{methods from IPostman}
+}
+
+class UDPPostman {
+    +udp_handle_sigint(signal: int): void
+    +UDPPostman(args: Args)
+    +~UDPPostman()
+    +get_display_name(): string
+    +confirm(): int
+    +confirm(ref_id: MessageID): int
+    +check_waiters(): bool
+    +{methods from IPostman}
+}
+
+class Utils {
+    +get_timestamp(): long long
+    +is_stdin_closed(): bool
+}
+
+class main <<highlight>> {
+}
+
+main : main function
+main : starts the application
+
+skinparam class<<highlight>>{
+    BackgroundColor gold
+    BorderColor black
+    FontColor black
+}
+
+
+TCPPostman --up-|> IPostman
+UDPPostman --up-|> IPostman
+Automata .left.> IPostman : uses >
+TCPPostman .up.> InputParser : uses >
+UDPPostman .up.> InputParser : uses >
+Automata ..> Utils : uses >
+TCPPostman ..> Utils : uses >
+UDPPostman ..> Utils : uses >
+main ..> ArgParser : uses >
+main ..> Automata : uses >
+
+@enduml

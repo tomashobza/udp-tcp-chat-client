@@ -43,8 +43,6 @@ protected:
     int client_socket;
     /** Server address */
     struct sockaddr_in server_address;
-    /** The timestamp of the last time check. */
-    long long timestamp = std::chrono::system_clock::now().time_since_epoch().count();
     /** Display name of the user */
     std::string display_name = "User";
     /** List of allowed server messages */

@@ -1,0 +1,1 @@
+- ze zadání mi nebylo jasné, zdali má automat hned sám přejít do stavu END ze stavu ERROR, má implementace nadále probíhá a je ukončena až buď pomocí `C-c`, `C-d`, nebo zprávou `BYE` od serveru

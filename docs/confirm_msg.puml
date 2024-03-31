@@ -1,0 +1,16 @@
+@startuml confirm_msg
+participant "list of messages to be confirmed"
+participant Client
+participant Server
+
+Client -> Server: sends a message
+Client -> "list of messages to be confirmed": save to "list of messages to be confirmed"
+
+Server -> Client: sends a message
+Client -> "list of messages to be confirmed": update waiting message metadata
+Client -> Client: handle message
+
+Server -> Client: sends a CONFIRM message
+Client -> "list of messages to be confirmed": delete message from "list of messages to be confirmed"
+
+@enduml

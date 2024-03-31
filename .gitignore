@@ -4,3 +4,5 @@ python/*
 venv/*
 ipk24chat-client
 ipk24chat-client.dSYM/** */
+docs/html
+docs/latex

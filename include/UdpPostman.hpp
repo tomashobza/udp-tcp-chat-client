@@ -23,14 +23,14 @@ private:
     int16_t ref_msg_id = 0;
     /** List of messages waiting for confirmation */
     std::list<ConfirmWaiter> confirm_waiters;
-    /** Time of the last confirm_waiters check */
-    long long timestamp;
     /** First message flag */
     bool first_message = true;
     /** Maximum number of CONFIRM retries */
     uint8_t max_retries = 3;
     /** Timeout for CONFIRM message */
     long long max_timeout = 250;
+    /** The timestamp of the last time check. */
+    long long timestamp = std::chrono::system_clock::now().time_since_epoch().count();
 
 public:
     /**
