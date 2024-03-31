@@ -203,7 +203,7 @@ int UDPPostman::message(const std::string &display_name, const std::string &mess
 int UDPPostman::error(const std::string &display_name, const std::string &message_contents)
 {
     // get the message data size
-    size_t data_len = BEG_OFFSET + display_name.size() + STR_OFFSET + message_contents.size();
+    size_t data_len = BEG_OFFSET + display_name.size() + STR_OFFSET + message_contents.size() + STR_OFFSET;
 
     // create the message data buffer
     std::vector<uint8_t> data(data_len);
@@ -213,6 +213,13 @@ int UDPPostman::error(const std::string &display_name, const std::string &messag
     data[2] = (uint8_t)msg_id & 0xFF;
     std::memcpy(&data[BEG_OFFSET], display_name.c_str(), display_name.size());
     std::memcpy(&data[BEG_OFFSET + display_name.size() + STR_OFFSET], message_contents.c_str(), message_contents.size());
+
+    // Make sure the message is null-terminated
+    if (data.at(data.size() - 1) != '\0')
+    {
+        data.push_back('\0');
+        data_len++;
+    }
 
     // send the message
     ssize_t n = sendto(client_socket, data.data(), data_len, 0,
@@ -530,7 +537,7 @@ PollResults UDPPostman::handle_server_message()
     bool is_first = first_message;
     bool is_new = (msg.id > ref_msg_id || is_first);
 
-    if (is_contentful && !is_unknown)
+    if (is_contentful)
     {
         confirm(msg.id);
     }
@@ -809,6 +816,8 @@ Message UDPPostman::data_to_message(std::vector<uint8_t> data)
     default:
         Message unknown;
         unknown.type = MessageType::UNKNOWN;
+        std::cout << "msg id: " << (int)data.at(1) << std::endl;
+        unknown.id = data.at(1) << 8 | data.at(2);
         return unknown;
     }
 
