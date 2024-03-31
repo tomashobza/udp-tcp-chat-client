@@ -659,6 +659,13 @@ Message UDPPostman::data_to_message(std::vector<uint8_t> data)
         Message msg;
         msg.type = MessageType::CONFIRM;
         msg.ref_id = data.at(1) << 8 | data.at(2);
+        if (data.size() != 3)
+        {
+            std::cerr << "ERR: CONFIRM message not complete!" << std::endl;
+            Message unknown;
+            unknown.type = MessageType::UNKNOWN;
+            return unknown;
+        }
         return msg;
     }
     case MessageType::REPLY:
@@ -678,6 +685,10 @@ Message UDPPostman::data_to_message(std::vector<uint8_t> data)
             std::cerr << "ERR: REPLY message not null-terminated!" << std::endl;
             Message unknown;
             unknown.type = MessageType::UNKNOWN;
+            if (data.size() > 3)
+            {
+                unknown.id = data.at(1) << 8 | data.at(2);
+            }
             return unknown;
         }
         return msg;
@@ -712,6 +723,10 @@ Message UDPPostman::data_to_message(std::vector<uint8_t> data)
             std::cerr << "ERR: AUTH message has empty fields or wrong NULL termination!" << std::endl;
             Message unknown;
             unknown.type = MessageType::UNKNOWN;
+            if (data.size() > 3)
+            {
+                unknown.id = data.at(1) << 8 | data.at(2);
+            }
             return unknown;
         }
 
@@ -741,6 +756,10 @@ Message UDPPostman::data_to_message(std::vector<uint8_t> data)
             std::cerr << "ERR: JOIN message has empty fields or wrong NULL termination!" << std::endl;
             Message unknown;
             unknown.type = MessageType::UNKNOWN;
+            if (data.size() > 3)
+            {
+                unknown.id = data.at(1) << 8 | data.at(2);
+            }
             return unknown;
         }
 
@@ -770,6 +789,10 @@ Message UDPPostman::data_to_message(std::vector<uint8_t> data)
             std::cerr << "ERR: MSG message has empty fields or wrong NULL termination!" << std::endl;
             Message unknown;
             unknown.type = MessageType::UNKNOWN;
+            if (data.size() > 3)
+            {
+                unknown.id = data.at(1) << 8 | data.at(2);
+            }
             return unknown;
         }
 
@@ -799,6 +822,10 @@ Message UDPPostman::data_to_message(std::vector<uint8_t> data)
             std::cerr << "ERR: ERR message has empty fields or wrong NULL termination!" << std::endl;
             Message unknown;
             unknown.type = MessageType::UNKNOWN;
+            if (data.size() > 3)
+            {
+                unknown.id = data.at(1) << 8 | data.at(2);
+            }
             return unknown;
         }
 
@@ -810,6 +837,13 @@ Message UDPPostman::data_to_message(std::vector<uint8_t> data)
         Message msg;
         msg.type = MessageType::BYE;
         msg.id = data.at(1) << 8 | data.at(2);
+        if (data.size() != 3)
+        {
+            std::cerr << "ERR: BYE message not complete!" << std::endl;
+            Message unknown;
+            unknown.type = MessageType::UNKNOWN;
+            return unknown;
+        }
         return msg;
     }
 
@@ -818,6 +852,10 @@ Message UDPPostman::data_to_message(std::vector<uint8_t> data)
         unknown.type = MessageType::UNKNOWN;
         std::cout << "msg id: " << (int)data.at(1) << std::endl;
         unknown.id = data.at(1) << 8 | data.at(2);
+        if (data.size() > 3)
+        {
+            unknown.id = data.at(1) << 8 | data.at(2);
+        }
         return unknown;
     }
 

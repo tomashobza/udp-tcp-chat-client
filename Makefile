@@ -2,7 +2,7 @@ CXX=g++-13
 CXXFLAGS=-std=c++20 -Wall -Wextra -pedantic -g
 
 # Define the target executable
-TARGET=bin/ipk24chat-client
+TARGET=ipk24chat-client
 
 # Define source files
 SOURCES=$(wildcard src/*.cpp)
@@ -35,13 +35,13 @@ run-only-tcp:
 	@./$(TARGET) -t tcp -s localhost
 
 test:
-	python3 python/testo.py bin/ipk24chat-client $(TEST_FLAGS)
+	python3 python/testo.py $(TARGET) $(TEST_FLAGS)
 
 test-tcp:
-	python3 python/testo.py bin/ipk24chat-client $(TEST_FLAGS) -p tcp
+	python3 python/testo.py $(TARGET) $(TEST_FLAGS) -p tcp
 
 test-udp:
-	python3 python/testo.py bin/ipk24chat-client $(TEST_FLAGS) -p udp
+	python3 python/testo.py $(TARGET) $(TEST_FLAGS) -p udp
 
 # Clean target
 clean:
