@@ -13,11 +13,10 @@ ifeq ($(DEBUG), true)
 	CXXFLAGS=-std=c++20 -Wall -Wextra -pedantic -g
 endif
 
-.PHONY: main run clean server docs diagrams
+.PHONY: main run clean server docs diagrams zip
 
 # Main target
 main: $(SOURCES)
-	@mkdir -p bin
 	$(CXX) -I./include -o $(TARGET) $(SOURCES) $(CXXFLAGS)
 
 # Run target
@@ -48,11 +47,15 @@ docs:
 	doxygen Doxyfile
 
 diagrams:
-	plantuml -tsvg -o ./ docs/*.puml
+	plantuml -tsvg -o ./ docs/*.puml'
+
+zip:
+	zip -r xhobza03.zip src/ include/ Makefile README.md CHANGELOG.md LICENSE
 
 # Clean target
 clean:
 	rm -f $(TARGET)
+	rm -rf tmp/
 
 # Server target
 server:
