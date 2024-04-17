@@ -1,5 +1,5 @@
-CXX=g++-13
-CXXFLAGS=-std=c++20 -Wall -Wextra -pedantic
+CXX=clang++
+CXXFLAGS=-std=c++2a -Wall -Wextra -pedantic -stdlib=libc++
 
 # Define the target executable
 TARGET=ipk24chat-client
